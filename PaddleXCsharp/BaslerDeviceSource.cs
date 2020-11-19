@@ -3,66 +3,63 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-
+using System.Windows.Forms;
 namespace BaslerDeviceSource
 {
-    public class baslerOperator
+    public class baslerCamera
     {
         // 版本
         private static Version sfnc2_0_0 = new Version(2, 0, 0);
 
-        //委托+事件 = 回调函数，用于传递相机抓取的图像
-        public delegate void CameraImage(Bitmap bmp);
-        public event CameraImage CameraImageEvent;
+        ////委托+事件 = 回调函数，用于传递相机抓取的图像
+        //public delegate void CameraImage(Bitmap bmp);
+        //public event CameraImage CameraImageEvent;
 
         //放出一个Camera
-        Camera camera;
+        Camera camera = null;
+
+        List<ICameraInfo> allCameraInfos;
 
         //basler里用于将相机采集的图像转换成位图
         PixelDataConverter pxConvert = new PixelDataConverter();
 
         //控制相机采集图像的过程
         bool GrabOver = false;
+
         // 相机个数
         public int CameraNum()
         {
             int cameraNumber = CameraFinder.Enumerate().Count;
             return cameraNumber;
         }
+
         // 枚举相机
         public List<ICameraInfo> CameraEnum()
         {
-            camera = new Camera();
             // 相机个数
             int num = CameraNum();
-            List<ICameraInfo> allCameraInfos = CameraFinder.Enumerate();
+            allCameraInfos = CameraFinder.Enumerate();
             return allCameraInfos;
-
-            //// 在窗体列表中显示设备名
-            //for (int i = 0; i < num; i++)
-            //{
-            //    if (allCameraInfos[i][CameraInfoKey.DeviceType] == "BaslerGigE")
-            //    {
-            //        return ("GEV: Basler " + camera.CameraInfo[CameraInfoKey.ModelName]);
-            //    }
-            //    else if (allCameraInfos[i][CameraInfoKey.DeviceType] == "BaslerUsb")
-            //    {
-            //        return ("U3V: Basler " + camera.CameraInfo[CameraInfoKey.ModelName]);
-            //    }
-            //}       
-            //return camera.CameraInfo[CameraInfoKey.ModelName];
-
         }
+
         // 相机初始化
-        public void CameraInit()
+        public Camera CameraInit(int index)
         {
-            camera = new Camera();
+            if (null == camera)
+            {
+                // 获取所选相机
+                ICameraInfo selectedCamera = allCameraInfos[index];
+                camera = new Camera(selectedCamera);
+            }
+            //打开相机
+            camera.Open();
+            /*
             //自由运行模式
             camera.CameraOpened += Configuration.AcquireContinuous;
 
             //断开连接事件
             camera.ConnectionLost += Camera_ConnectionLost;
-
+            
             //抓取开始事件
             camera.StreamGrabber.GrabStarted += StreamGrabber_GrabStarted;
 
@@ -71,10 +68,11 @@ namespace BaslerDeviceSource
 
             //结束抓取事件
             camera.StreamGrabber.GrabStopped += StreamGrabber_GrabStopped;
+            */
 
-            //打开相机
-            camera.Open();
+            return camera;
         }
+
         // 获取参数
         public void GetParam(ref string gain ,ref string exposure)
         {
@@ -90,6 +88,7 @@ namespace BaslerDeviceSource
             }
 
         }
+
         // 设置参数
         public void SetParam(long gain, long exposure, ref string gainString, ref string exposureString)
         {
@@ -150,48 +149,17 @@ namespace BaslerDeviceSource
             } 
         }
 
-        private void StreamGrabber_GrabStarted(object sender, EventArgs e)
-        {
-            GrabOver = true;
-        }
-        private void StreamGrabber_ImageGrabbed(object sender, ImageGrabbedEventArgs e)
-        {
-            IGrabResult grabResult = e.GrabResult;
-            if (grabResult.IsValid)
-            {
-                if (GrabOver)
-                    CameraImageEvent(GrabResult2Bmp(grabResult));
-            }
-        }
-        private void StreamGrabber_GrabStopped(object sender, GrabStopEventArgs e)
-        {
-            GrabOver = false;
-        }      
-        private void Camera_ConnectionLost(object sender, EventArgs e)
-        {
-            camera.StreamGrabber.Stop();
-            DestroyCamera();
-        }
-        // 单张采集
-        public void OneShot()
+        // 开始采集
+        public void StartGrabbing()
         {
             if (camera != null)
             {
-                camera.Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.SingleFrame);
-                camera.StreamGrabber.Start(1, GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
+                camera.StreamGrabber.Start();
             }
         }
-        // 连续采集
-        public void KeepShot()
-        {
-            if (camera != null)
-            {
-                camera.Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
-                camera.StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
-            }
-        }
+
         // 停止采集
-        public void Stop()
+        public void StopGrabbing()
         {
             if (camera != null)
             {
@@ -199,19 +167,7 @@ namespace BaslerDeviceSource
             }
         }
 
-        //将相机抓取到的图像转换成Bitmap位图
-        Bitmap GrabResult2Bmp(IGrabResult grabResult)
-        {
-            Bitmap b = new Bitmap(grabResult.Width, grabResult.Height, PixelFormat.Format32bppRgb);
-            BitmapData bmpData = b.LockBits(new Rectangle(0, 0, b.Width, b.Height), ImageLockMode.ReadWrite, b.PixelFormat);
-            pxConvert.OutputPixelFormat = PixelType.BGRA8packed;
-            IntPtr bmpIntpr = bmpData.Scan0;
-            pxConvert.Convert(bmpIntpr, bmpData.Stride * b.Height, grabResult);
-            b.UnlockBits(bmpData);
-            return b;
-        }
-
-        //释放相机
+        // 关闭相机对象
         public void DestroyCamera()
         {
             if (camera != null)

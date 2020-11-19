@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SingleCamera));
             this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.bnChooseModel = new System.Windows.Forms.Button();
+            this.bnLoadModel = new System.Windows.Forms.Button();
             this.bnStartDetection = new System.Windows.Forms.Button();
             this.bnSaveImage = new System.Windows.Forms.Button();
             this.bnStopDetection = new System.Windows.Forms.Button();
@@ -45,7 +45,6 @@
             this.cbDeviceList = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.listView1 = new System.Windows.Forms.ListView();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.cameraType = new System.Windows.Forms.ComboBox();
@@ -53,45 +52,42 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.bnEnum = new System.Windows.Forms.Button();
             this.bnOpen = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox5.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox3.SuspendLayout();
-            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox5
             // 
-            this.groupBox5.Controls.Add(this.bnChooseModel);
+            this.groupBox5.Controls.Add(this.bnLoadModel);
             this.groupBox5.Controls.Add(this.bnStartDetection);
             this.groupBox5.Controls.Add(this.bnSaveImage);
             this.groupBox5.Controls.Add(this.bnStopDetection);
             this.groupBox5.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox5.Location = new System.Drawing.Point(831, 508);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(260, 208);
+            this.groupBox5.Size = new System.Drawing.Size(260, 198);
             this.groupBox5.TabIndex = 40;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "检测操作";
             // 
-            // bnChooseModel
+            // bnLoadModel
             // 
-            this.bnChooseModel.Enabled = false;
-            this.bnChooseModel.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnChooseModel.Location = new System.Drawing.Point(25, 36);
-            this.bnChooseModel.Name = "bnChooseModel";
-            this.bnChooseModel.Size = new System.Drawing.Size(100, 25);
-            this.bnChooseModel.TabIndex = 13;
-            this.bnChooseModel.Text = "模型选择";
-            this.bnChooseModel.UseVisualStyleBackColor = true;
-            this.bnChooseModel.Click += new System.EventHandler(this.BnChooseModel_Click);
+            this.bnLoadModel.Enabled = false;
+            this.bnLoadModel.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.bnLoadModel.Location = new System.Drawing.Point(25, 36);
+            this.bnLoadModel.Name = "bnLoadModel";
+            this.bnLoadModel.Size = new System.Drawing.Size(100, 25);
+            this.bnLoadModel.TabIndex = 13;
+            this.bnLoadModel.Text = "加载模型";
+            this.bnLoadModel.UseVisualStyleBackColor = true;
+            this.bnLoadModel.Click += new System.EventHandler(this.BnLoadModel_Click);
             // 
             // bnStartDetection
             // 
-            this.bnStartDetection.Enabled = false;
             this.bnStartDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.bnStartDetection.Location = new System.Drawing.Point(141, 36);
             this.bnStartDetection.Name = "bnStartDetection";
@@ -244,21 +240,12 @@
             // 
             this.pictureBox2.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pictureBox2.BackgroundImage")));
             this.pictureBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pictureBox2.Location = new System.Drawing.Point(850, 3);
+            this.pictureBox2.Location = new System.Drawing.Point(849, -11);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(223, 158);
+            this.pictureBox2.Size = new System.Drawing.Size(223, 191);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 39;
             this.pictureBox2.TabStop = false;
-            // 
-            // listView1
-            // 
-            this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(16, 27);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(769, 89);
-            this.listView1.TabIndex = 21;
-            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
             // groupBox4
             // 
@@ -266,17 +253,18 @@
             this.groupBox4.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox4.Location = new System.Drawing.Point(12, 50);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(803, 529);
+            this.groupBox4.Size = new System.Drawing.Size(803, 656);
             this.groupBox4.TabIndex = 19;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "检测界面";
             // 
             // pictureBox1
             // 
-            this.pictureBox1.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.pictureBox1.Location = new System.Drawing.Point(16, 28);
+            this.pictureBox1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.pictureBox1.Location = new System.Drawing.Point(18, 29);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(769, 486);
+            this.pictureBox1.Size = new System.Drawing.Size(769, 621);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 27;
             this.pictureBox1.TabStop = false;
             // 
@@ -340,17 +328,6 @@
             this.bnOpen.UseVisualStyleBackColor = true;
             this.bnOpen.Click += new System.EventHandler(this.bnOpen_Click);
             // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.listView1);
-            this.groupBox1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.groupBox1.Location = new System.Drawing.Point(12, 585);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(803, 131);
-            this.groupBox1.TabIndex = 20;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "检测数据";
-            // 
             // SingleCamera
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -359,10 +336,9 @@
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.cbDeviceList);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.pictureBox2);
             this.Name = "SingleCamera";
             this.Text = " 深度学习工业检测（单相机模式）";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SingleCamera_FormClosing);
@@ -373,7 +349,6 @@
             this.groupBox4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox3.ResumeLayout(false);
-            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -381,7 +356,7 @@
         #endregion
 
         private System.Windows.Forms.GroupBox groupBox5;
-        private System.Windows.Forms.Button bnChooseModel;
+        private System.Windows.Forms.Button bnLoadModel;
         private System.Windows.Forms.Button bnStartDetection;
         private System.Windows.Forms.Button bnSaveImage;
         private System.Windows.Forms.Button bnStopDetection;
@@ -396,7 +371,6 @@
         private System.Windows.Forms.ComboBox cbDeviceList;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.PictureBox pictureBox1;
         public System.Windows.Forms.ComboBox cameraType;
@@ -404,6 +378,5 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button bnEnum;
         private System.Windows.Forms.Button bnOpen;
-        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
