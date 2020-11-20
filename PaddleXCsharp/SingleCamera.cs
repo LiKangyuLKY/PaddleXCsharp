@@ -10,7 +10,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
-
+using System.IO;
 namespace PaddleXCsharp
 {
     public partial class SingleCamera : Form
@@ -29,6 +29,9 @@ namespace PaddleXCsharp
         private static Object BufForDriverLock = new Object();
 
         private delegate void UpdateUI();
+
+        int stride;
+        Bitmap A = null;
 
         /* ================================= basler相机 ================================= */
         baslerCamera baslerCamera = new baslerCamera();
@@ -465,10 +468,10 @@ namespace PaddleXCsharp
                             //Console.WriteLine("1");
                             converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
                             bitmap.UnlockBits(bmpData);
+
                             if (is_inference)
                             {
-                                Bitmap img = Inference(bitmap);
-                                bitmap = img;
+                                bitmap = Inference(bitmap);
                             }
                             if (pictureBox1.InvokeRequired)
                             {
@@ -698,13 +701,16 @@ namespace PaddleXCsharp
             var rowBytes = bmpData.Width * Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
             var imgBytes = bmp.Height * rowBytes;
             byte[] rgbValues = new byte[imgBytes];
-            IntPtr ptr = bmpData.Scan0;
+
+            var ptr = bmpData.Scan0;
             for (var i = 0; i < bmp.Height; i++)
             {
                 Marshal.Copy(ptr, rgbValues, i * rowBytes, rowBytes);
-                ptr += bmpData.Stride;
+                ptr += bmpData.Stride; // next row
             }
+
             bmp.UnlockBits(bmpData);
+
             return rgbValues;
         }
 
@@ -717,25 +723,35 @@ namespace PaddleXCsharp
         // 推理
         private Bitmap Inference(Bitmap bmp)
         {
-            int stride;
+
             byte[] source = GetBGRValues(bmp, out stride);
-            //int[] resultlist = new int[300];
-            //for (int i = 0; i < 6; i++)
-            //{
-            //    resultlist[i] = -1;
-            //}
-
-            //IntPtr result = getBytesPtrInt(resultlist);
-
+            int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
             IntPtr[] result = new IntPtr[100];
-            IntPtr resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, 3, result);
+            IntPtr resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, result);
+
+            Bitmap resultshow;
             Mat img = new Mat(resultImage);
-            Bitmap resultshow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), System.Drawing.Imaging.PixelFormat.Format24bppRgb, img.Data);
-            //pictureBox1.Image = resultshow;
+
+            switch(channel)
+            {
+                case 1:
+                    resultshow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format8bppIndexed, img.Data);
+                    break;
+                case 2:
+                    resultshow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format16bppGrayScale, img.Data);
+                    break;
+                case 3:
+                    resultshow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format24bppRgb, img.Data);
+                    break;
+                default:
+                    resultshow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format32bppArgb, img.Data);
+                    break;
+            }
+            System.GC.Collect();
             return resultshow;
+            
         }
-        
-        // 开始检测
+
         private void BnStartDetection_Click(object sender, EventArgs e)
         {
             bnStopDetection.Enabled = true;
@@ -756,7 +772,7 @@ namespace PaddleXCsharp
         {
 
         }
-        
+
         // 窗口关闭
         private void SingleCamera_FormClosing(object sender, FormClosingEventArgs e)
         {

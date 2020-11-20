@@ -88,6 +88,7 @@
             // 
             // bnStartDetection
             // 
+            this.bnStartDetection.Enabled = false;
             this.bnStartDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.bnStartDetection.Location = new System.Drawing.Point(141, 36);
             this.bnStartDetection.Name = "bnStartDetection";
@@ -99,7 +100,6 @@
             // 
             // bnSaveImage
             // 
-            this.bnSaveImage.Enabled = false;
             this.bnSaveImage.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.bnSaveImage.Location = new System.Drawing.Point(141, 77);
             this.bnSaveImage.Name = "bnSaveImage";
