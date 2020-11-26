@@ -213,7 +213,7 @@
             // 
             this.cbDeviceList.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.cbDeviceList.FormattingEnabled = true;
-            this.cbDeviceList.Location = new System.Drawing.Point(12, 21);
+            this.cbDeviceList.Location = new System.Drawing.Point(12, 6);
             this.cbDeviceList.Name = "cbDeviceList";
             this.cbDeviceList.Size = new System.Drawing.Size(803, 22);
             this.cbDeviceList.TabIndex = 0;
@@ -251,9 +251,9 @@
             // 
             this.groupBox4.Controls.Add(this.pictureBox1);
             this.groupBox4.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.groupBox4.Location = new System.Drawing.Point(12, 50);
+            this.groupBox4.Location = new System.Drawing.Point(12, 35);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(803, 656);
+            this.groupBox4.Size = new System.Drawing.Size(803, 603);
             this.groupBox4.TabIndex = 19;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "检测界面";
@@ -263,7 +263,7 @@
             this.pictureBox1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.pictureBox1.Location = new System.Drawing.Point(18, 29);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(769, 621);
+            this.pictureBox1.Size = new System.Drawing.Size(769, 558);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 27;
             this.pictureBox1.TabStop = false;
@@ -315,7 +315,7 @@
             this.bnEnum.TabIndex = 2;
             this.bnEnum.Text = "查找设备";
             this.bnEnum.UseVisualStyleBackColor = true;
-            this.bnEnum.Click += new System.EventHandler(this.bnEnum_Click);
+            this.bnEnum.Click += new System.EventHandler(this.BnEnum_Click);
             // 
             // bnOpen
             // 
@@ -326,7 +326,7 @@
             this.bnOpen.TabIndex = 3;
             this.bnOpen.Text = "打开设备";
             this.bnOpen.UseVisualStyleBackColor = true;
-            this.bnOpen.Click += new System.EventHandler(this.bnOpen_Click);
+            this.bnOpen.Click += new System.EventHandler(this.BnOpen_Click);
             // 
             // SingleCamera
             // 
@@ -339,6 +339,8 @@
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.pictureBox2);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            this.MaximizeBox = false;
             this.Name = "SingleCamera";
             this.Text = " 深度学习工业检测（单相机模式）";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SingleCamera_FormClosing);

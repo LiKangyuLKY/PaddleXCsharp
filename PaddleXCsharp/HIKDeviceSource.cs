@@ -19,9 +19,6 @@ namespace HIKDeviceSource
         public const int CO_FAIL = -1;
         public const int CO_OK = 0;
 
-        bool mTragger = true;
-        public static MyCamera.cbOutputExdelegate ImageCallback;
-
         //放出一个Camera
         MyCamera camera = null;
 
@@ -35,9 +32,7 @@ namespace HIKDeviceSource
         //相机个数
         public uint CameraNum()
         {
-            string pManufacturerName = "Hikvision";
-            MyCamera.MV_CC_EnumDevicesEx_NET(MyCamera.MV_GIGE_DEVICE | MyCamera.MV_USB_DEVICE, ref deviceList, pManufacturerName);
-            //Console.WriteLine(deviceList.ToString());
+            MyCamera.MV_CC_EnumDevicesEx_NET(MyCamera.MV_GIGE_DEVICE | MyCamera.MV_USB_DEVICE, ref deviceList, "Hikvision");
             return deviceList.nDeviceNum;
         }
 
@@ -82,78 +77,150 @@ namespace HIKDeviceSource
         }
 
         // 相机初始化
-        public void CameraInit(int index)
+        public MyCamera CameraInit(int index)
         {
-            if (deviceList.nDeviceNum == 0 || index == -1)
-            {
-                MessageBox.Show("未找到设备，请检查！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            // 获取选择的设备信息
+
             MyCamera.MV_CC_DEVICE_INFO device =
                 (MyCamera.MV_CC_DEVICE_INFO)Marshal.PtrToStructure(deviceList.pDeviceInfo[index],
                                                                 typeof(MyCamera.MV_CC_DEVICE_INFO));
-            // 打开设备
             if (null == camera)
             {
                 camera = new MyCamera();
             }
             // 创建设备
-            int nRet = camera.MV_CC_CreateDevice_NET(ref device);
-            Console.WriteLine(nRet);
-            if (MyCamera.MV_OK != nRet)
-            {
-                MessageBox.Show("创建设备失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            nRet = camera.MV_CC_OpenDevice_NET();
-            if (MyCamera.MV_OK != nRet)
-            {
-                camera.MV_CC_DestroyDevice_NET();
-                MessageBox.Show("设备打开失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+            camera.MV_CC_CreateDevice_NET(ref device);
+            // 打开设备
+            camera.MV_CC_OpenDevice_NET();
             // 探测网络最佳包大小(只对GigE相机有效)
             if (device.nTLayerType == MyCamera.MV_GIGE_DEVICE)
             {
                 int nPacketSize = camera.MV_CC_GetOptimalPacketSize_NET();
                 if (nPacketSize > 0)
                 {
-                    nRet = camera.MV_CC_SetIntValue_NET("GevSCPSPacketSize", (uint)nPacketSize);
-                    if (nRet != MyCamera.MV_OK)
-                    {
-                        MessageBox.Show("Set Packet Size failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Get Packet Size failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    camera.MV_CC_SetIntValue_NET("GevSCPSPacketSize", (uint)nPacketSize);
                 }
             }
-
             // 设置连续采集模式
             camera.MV_CC_SetEnumValue_NET("AcquisitionMode", (uint)MyCamera.MV_CAM_ACQUISITION_MODE.MV_ACQ_MODE_CONTINUOUS);
             camera.MV_CC_SetEnumValue_NET("TriggerMode", (uint)MyCamera.MV_CAM_TRIGGER_MODE.MV_TRIGGER_MODE_OFF);
 
+            return camera;
         }
 
-        public int StartGrabbing()
+        // 关闭相机对象
+        public void DestroyCamera()
+        {
+            if(camera != null)
+            {
+                // 停止采集
+                camera.MV_CC_StopGrabbing_NET();
+                // 关闭设备
+                camera.MV_CC_CloseDevice_NET();
+                camera.MV_CC_DestroyDevice_NET();
+                camera = null;
+            }  
+        }
+
+        // 获取参数
+        public void GetParam(ref string gain, ref string exposure)
+        {
+            MyCamera.MVCC_FLOATVALUE stParam = new MyCamera.MVCC_FLOATVALUE();
+            // 获取曝光值
+            int nRet = camera.MV_CC_GetFloatValue_NET("Gain", ref stParam);
+            if (MyCamera.MV_OK == nRet)
+            {
+                gain = stParam.fCurValue.ToString("F0");
+            }
+            // 获取增益
+            nRet = camera.MV_CC_GetFloatValue_NET("ExposureTime", ref stParam);
+            if (MyCamera.MV_OK == nRet)
+            {
+                exposure = stParam.fCurValue.ToString("F0");
+            }
+        }
+
+        // 设置参数
+        public void SetParam(float gain, float exposure, ref string gainString, ref string exposureString)
+        {
+            // 增益
+            // 获取当前Gain、最大Gain、最小Gain
+            MyCamera.MVCC_FLOATVALUE gainValue = new MyCamera.MVCC_FLOATVALUE();
+            camera.MV_CC_GetGain_NET(ref gainValue);
+            //float gain = gainValue.fCurValue;
+            float maxGain = gainValue.fMax;
+            float minGain = gainValue.fMin;
+            // 判断是否处于最小到最大值之间
+            if (gain < minGain)
+            {
+                MessageBox.Show("小于最小值，已修改为最小增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                gain = minGain;
+            }
+            else if (gain > maxGain)
+            {
+                MessageBox.Show("大于最大值，已修改为最大增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                gain = maxGain;
+            }
+            // 关闭自动设置
+            camera.MV_CC_SetEnumValue_NET("GainAuto", 0);
+            // 设置Gain
+            camera.MV_CC_SetFloatValue_NET("Gain", gain);
+            gainString = gain.ToString("F0");
+
+            // 曝光时间
+            // 获取当前Exposure、最大Exposure、最小Exposure
+            MyCamera.MVCC_FLOATVALUE exposureValue = new MyCamera.MVCC_FLOATVALUE();
+            camera.MV_CC_GetExposureTime_NET(ref exposureValue);
+            //float exposure = exposureValue.fCurValue;
+            float maxExposure = exposureValue.fMax;
+            float minExposure = exposureValue.fMin;
+            // 判断是否处于最小到最大值之间
+            if (exposure < minExposure)
+            {
+                MessageBox.Show("小于最小值，已修改为最小曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                exposure = minExposure;
+            }
+            else if (exposure > maxExposure)
+            {
+                MessageBox.Show("大于最大值，已修改为最大曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                exposure = maxExposure;
+            }
+
+            // 关闭自动设置
+            camera.MV_CC_SetEnumValue_NET("ExposureAuto", 0);
+            // 设置ExposureTime
+            camera.MV_CC_SetFloatValue_NET("ExposureTime", exposure);
+            exposureString = exposure.ToString("F0");
+        }
+
+        // 开始采集
+        public void StartGrabbing()
         {
             m_stFrameInfo.nFrameLen = 0; // 取流之前先清除帧长度
             m_stFrameInfo.enPixelType = MyCamera.MvGvspPixelType.PixelType_Gvsp_Undefined;
-            int nRet = camera.MV_CC_StartGrabbing_NET();
-            return nRet;
+            camera.MV_CC_StartGrabbing_NET(); // 开始Grab
         }
 
-        public int Grabbing()
+        // 停止采集
+        public void StopGrabbing()
         {
-            MyCamera.MV_FRAME_OUT stFrameInfo = new MyCamera.MV_FRAME_OUT();
-            int nRet = camera.MV_CC_GetImageBuffer_NET(ref stFrameInfo, 10000);
-            return nRet;
+            if (camera != null)
+            {
+                camera.MV_CC_StopGrabbing_NET();
+            }
         }
 
+        // 类型转换
+        public IntPtr HikConvert()
+        {
+            IntPtr pTemp = IntPtr.Zero;
+            //MyCamera.MvGvspPixelType enDstPixelType = MyCamera.MvGvspPixelType.PixelType_Gvsp_Undefined;
+            //if (m_stFrameInfo.enPixelType == MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono8 || m_stFrameInfo.enPixelType == MyCamera.MvGvspPixelType.PixelType_Gvsp_BGR8_Packed)
+            //{
+            //    IntPtr m_BufForDriver;
+            //    pTemp = m_BufForDriver;
+            //    enDstPixelType = m_stFrameInfo.enPixelType;
+            //}
+            return pTemp;
+        }
     }
 }

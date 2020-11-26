@@ -6,14 +6,10 @@ using System.Drawing.Imaging;
 using System.Windows.Forms;
 namespace BaslerDeviceSource
 {
-    public class baslerCamera
+    public class BaslerCamera
     {
         // 版本
         private static Version sfnc2_0_0 = new Version(2, 0, 0);
-
-        ////委托+事件 = 回调函数，用于传递相机抓取的图像
-        //public delegate void CameraImage(Bitmap bmp);
-        //public event CameraImage CameraImageEvent;
 
         //放出一个Camera
         Camera camera = null;
@@ -22,9 +18,6 @@ namespace BaslerDeviceSource
 
         //basler里用于将相机采集的图像转换成位图
         PixelDataConverter pxConvert = new PixelDataConverter();
-
-        //控制相机采集图像的过程
-        bool GrabOver = false;
 
         // 相机个数
         public int CameraNum()
@@ -53,23 +46,6 @@ namespace BaslerDeviceSource
             }
             //打开相机
             camera.Open();
-            /*
-            //自由运行模式
-            camera.CameraOpened += Configuration.AcquireContinuous;
-
-            //断开连接事件
-            camera.ConnectionLost += Camera_ConnectionLost;
-            
-            //抓取开始事件
-            camera.StreamGrabber.GrabStarted += StreamGrabber_GrabStarted;
-
-            //抓取图片事件
-            camera.StreamGrabber.ImageGrabbed += StreamGrabber_ImageGrabbed;
-
-            //结束抓取事件
-            camera.StreamGrabber.GrabStopped += StreamGrabber_GrabStopped;
-            */
-
             return camera;
         }
 
@@ -86,7 +62,6 @@ namespace BaslerDeviceSource
                 gain = camera.Parameters[PLCamera.Gain].GetValue().ToString();
                 exposure = camera.Parameters[PLCamera.ExposureTime].GetValue().ToString();
             }
-
         }
 
         // 设置参数
@@ -98,10 +73,16 @@ namespace BaslerDeviceSource
             {
                 long maxGain = camera.Parameters[PLCamera.GainRaw].GetMaximum();
                 long minGain = camera.Parameters[PLCamera.GainRaw].GetMinimum();
-                //long incrGain = camera.Parameters[PLCamera.ExposureTimeRaw].GetIncrement();
-                if (gain < minGain) { gain = minGain; }
-                else if (gain > maxGain) { gain = maxGain; }
-                // else { gain = minGain + (((gain - minGain) / incrGain) * incrGain); }
+                if (gain < minGain)
+                {
+                    MessageBox.Show("小于最小值，已修改为最小增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    gain = minGain;
+                }
+                else if (gain > maxGain)
+                {
+                    MessageBox.Show("大于最大值，已修改为最大增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    gain = maxGain;
+                }
                 camera.Parameters[PLCamera.GainRaw].SetValue(gain);
 
                 gainString = gain.ToString();
@@ -111,10 +92,16 @@ namespace BaslerDeviceSource
                 double gainNew = gain;
                 double maxGain = camera.Parameters[PLCamera.Gain].GetMaximum();
                 double minGain = camera.Parameters[PLCamera.Gain].GetMinimum();
-                //long incrGain = camera.Parameters[PLCamera.ExposureTimeRaw].GetIncrement();
-                if (gainNew < minGain) { gainNew = minGain; }
-                else if (gainNew > maxGain) { gainNew = maxGain; }
-                // else { gain = minGain + (((gain - minGain) / incrGain) * incrGain); }
+                if (gainNew < minGain)
+                {
+                    MessageBox.Show("小于最小值，已修改为最小增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    gainNew = minGain;
+                }
+                else if (gainNew > maxGain)
+                {
+                    MessageBox.Show("大于最大值，已修改为最大增益值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    gainNew = maxGain;
+                }
                 camera.Parameters[PLCamera.Gain].SetValue(gainNew);
 
                 gainString = gainNew.ToString();
@@ -126,10 +113,16 @@ namespace BaslerDeviceSource
             {
                 long maxExposure = camera.Parameters[PLCamera.ExposureTimeRaw].GetMaximum();
                 long minExposure = camera.Parameters[PLCamera.ExposureTimeRaw].GetMinimum();
-                //long incrExposure = camera.Parameters[PLCamera.ExposureTimeRaw].GetIncrement();
-                if (exposure < minExposure) { exposure = minExposure; }
-                else if (exposure > maxExposure) { exposure = maxExposure; }
-                // else { exposure = minExposure + (((exposure - minExposure) / incrExposure) * incrExposure); }
+                if (exposure < minExposure)
+                {
+                    MessageBox.Show("小于最小值，已修改为最小曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    exposure = minExposure;
+                }
+                else if (exposure > maxExposure)
+                {
+                    MessageBox.Show("大于最大值，已修改为最大曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    exposure = maxExposure;
+                }
                 camera.Parameters[PLCamera.ExposureTimeRaw].SetValue(exposure);
 
                 exposureString = exposure.ToString();
@@ -139,10 +132,16 @@ namespace BaslerDeviceSource
                 double exposureNew = exposure;
                 double maxExposure = camera.Parameters[PLCamera.ExposureTime].GetMaximum();
                 double minExposure = camera.Parameters[PLCamera.ExposureTime].GetMinimum();
-                //long incrExposure = camera.Parameters[PLCamera.ExposureTimeRaw].GetIncrement();
-                if (exposureNew < minExposure) { exposureNew = minExposure; }
-                else if (exposureNew > maxExposure) { exposureNew = maxExposure; }
-                // else { exposure = minExposure + (((exposure - minExposure) / incrExposure) * incrExposure); }
+                if (exposureNew < minExposure)
+                {
+                    MessageBox.Show("小于最小值，已修改为最小曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    exposureNew = minExposure;
+                }
+                else if (exposureNew > maxExposure)
+                {
+                    MessageBox.Show("大于最大值，已修改为最大曝光时间值！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    exposureNew = maxExposure;
+                }
                 camera.Parameters[PLCamera.ExposureTime].SetValue(exposureNew);
 
                 exposureString = exposureNew.ToString();
@@ -172,7 +171,9 @@ namespace BaslerDeviceSource
         {
             if (camera != null)
             {
+                // 停止采集
                 camera.StreamGrabber.Stop();
+                // 关闭设备
                 camera.Close();
                 camera.Dispose();
                 camera = null;
