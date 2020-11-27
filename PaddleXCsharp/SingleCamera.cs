@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using System.IO;
 namespace PaddleXCsharp
 {
     public partial class SingleCamera : Form
@@ -29,30 +28,15 @@ namespace PaddleXCsharp
 
         /* ================================= 海康相机 ================================= */
         HIKVisionCamera hIKVisionCamera = new HIKVisionCamera();
-        MyCamera.MV_CC_DEVICE_INFO_LIST m_stDeviceList = new MyCamera.MV_CC_DEVICE_INFO_LIST();
         MyCamera camera2 = null;
-        bool hikCanGrab = false;
-        MyCamera.MV_FRAME_OUT_INFO_EX m_stFrameInfo = new MyCamera.MV_FRAME_OUT_INFO_EX();
-        Thread m_hReceiveThread = null;
+        Thread hikGrabThread = null;
+         
+        bool hikCanGrab = false;  // 控制相机是否Grab
+        bool chooseHIK = false;           // 海康相机打开标志
+        
         // 用于从驱动获取图像的缓存
         UInt32 m_nBufSizeForDriver = 0;
         IntPtr m_BufForDriver;
-
-        // ch:用于保存图像的缓存 | en:Buffer for saving image
-        UInt32 m_nBufSizeForSaveImage = 0;
-        IntPtr m_BufForSaveImage;
-
-
-        private static Object BufForDriverLock = new Object();
-
-        //int stride;
-
-        bool chooseHIK = false;           // 海康相机打开标志
-
-
-
-        IntPtr BufForSaveImage;
-
 
         /* ================================= inference ================================= */
         #region 接口定义及参数
@@ -243,65 +227,7 @@ namespace PaddleXCsharp
                 {
                     MessageBox.Show("打开相机失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
-                }
-                /*
-                if (m_stDeviceList.nDeviceNum == 0 || cbDeviceList.SelectedIndex == -1)
-                {
-                    MessageBox.Show("未找到设备，请检查！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                // 获取选择的设备信息
-                MyCamera.MV_CC_DEVICE_INFO device =
-                    (MyCamera.MV_CC_DEVICE_INFO)Marshal.PtrToStructure(m_stDeviceList.pDeviceInfo[cbDeviceList.SelectedIndex],
-                                                                  typeof(MyCamera.MV_CC_DEVICE_INFO));
-                // 打开设备
-                if (null == camera2)
-                {
-                    camera2 = new MyCamera();
-                    if (null == camera2)
-                    {
-                        return;
-                    }
-                }
-
-                int nRet = camera2.MV_CC_CreateDevice_NET(ref device);
-                if (MyCamera.MV_OK != nRet)
-                {
-                    return;
-                }
-
-                nRet = camera2.MV_CC_OpenDevice_NET();
-                if (MyCamera.MV_OK != nRet)
-                {
-                    camera2.MV_CC_DestroyDevice_NET();
-                    MessageBox.Show("设备打开失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                // 探测网络最佳包大小(只对GigE相机有效)
-                if (device.nTLayerType == MyCamera.MV_GIGE_DEVICE)
-                {
-                    int nPacketSize = camera2.MV_CC_GetOptimalPacketSize_NET();
-                    if (nPacketSize > 0)
-                    {
-                        nRet = camera2.MV_CC_SetIntValue_NET("GevSCPSPacketSize", (uint)nPacketSize);
-                        if (nRet != MyCamera.MV_OK)
-                        {
-                            MessageBox.Show("Set Packet Size failed！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Get Packet Size failed！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                // 设置连续采集模式
-                camera2.MV_CC_SetEnumValue_NET("AcquisitionMode", (uint)MyCamera.MV_CAM_ACQUISITION_MODE.MV_ACQ_MODE_CONTINUOUS);
-                camera2.MV_CC_SetEnumValue_NET("TriggerMode", (uint)MyCamera.MV_CAM_TRIGGER_MODE.MV_TRIGGER_MODE_OFF);
-
-                // 相机初始化
-                //hIKVisionCamera.CameraInit(cbDeviceList.SelectedIndex);
-
-                */
+                }           
             }
             
             // 启动basler相机
@@ -336,15 +262,11 @@ namespace PaddleXCsharp
                     if (hikCanGrab == true)
                     {
                         hikCanGrab = false;
-                        m_hReceiveThread.Join();
+                        hikGrabThread.Join();
                     }
                     if (m_BufForDriver != IntPtr.Zero)
                     {
                         Marshal.Release(m_BufForDriver);
-                    }
-                    if (BufForSaveImage != IntPtr.Zero)
-                    {
-                        Marshal.Release(BufForSaveImage);
                     }
                     // 释放相机
                     hIKVisionCamera.DestroyCamera();
@@ -475,15 +397,15 @@ namespace PaddleXCsharp
                     // 开始采集
                     hIKVisionCamera.StartGrabbing();
                     // 用线程更新显示
-                    m_hReceiveThread = new Thread(GrabThreadProcess);
-                    m_hReceiveThread.Start();
+                    hikGrabThread = new Thread(GrabThreadProcess);
+                    hikGrabThread.Start();
                     // 控件操作
                     SetCtrlWhenStartGrab();
                 }
                 catch
                 {
                     hikCanGrab = false;
-                    m_hReceiveThread.Join();
+                    hikGrabThread.Join();
                     MessageBox.Show("开始采集失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
@@ -522,7 +444,7 @@ namespace PaddleXCsharp
                 try
                 {  
                     hikCanGrab = false;   // 标志位设为false
-                    m_hReceiveThread.Join();  // 主线程阻塞，等待线程结束
+                    hikGrabThread.Join();  // 主线程阻塞，等待线程结束
                     hIKVisionCamera.StopGrabbing();  // 停止采集
                     SetCtrlWhenStopGrab();  // 控件操作
                 }
@@ -719,9 +641,9 @@ namespace PaddleXCsharp
         // 窗口关闭
         private void SingleCamera_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //BnClose_Click(sender, e);
-            hIKVisionCamera.DestroyCamera();
-            baslerCamera.DestroyCamera();
+            BnClose_Click(sender, e);
+            //hIKVisionCamera.DestroyCamera();
+            //baslerCamera.DestroyCamera();
             System.Environment.Exit(0);
         }
     }
