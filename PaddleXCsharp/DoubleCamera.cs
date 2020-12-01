@@ -16,7 +16,7 @@ namespace PaddleXCsharp
 {
     public partial class DoubleCamera : Form
     {
-        //private delegate void UpdateUI();  // 声明委托
+        private delegate void UpdateUI();  // 声明委托
         int cameraUsingNum;
         
         /* ================================= basler相机 ================================= */
@@ -28,6 +28,7 @@ namespace PaddleXCsharp
 
         //bool baslerCanGrab = false;    // 控制相机是否Grab
         //private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
+        private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
         bool chooseBasler = false;     // Basler相机打开标志
 
         ///* ================================= 海康相机 ================================= */
@@ -199,15 +200,20 @@ namespace PaddleXCsharp
             // 获取使用设备的数量
             cameraUsingNum = int.Parse(tbUseNum.Text);
             // 参数检测
-            if (cameraUsingNum <= 0)
+            if (cameraUsingNum < 1)
             {
                 cameraUsingNum = 1;
                 tbUseNum.Text = "1";
             }
-            if (cameraUsingNum > 2)
+            else if (cameraUsingNum > 2)
             {
                 cameraUsingNum = 2;
                 tbUseNum.Text = "2";
+            }
+            else
+            {
+                if (cameraUsingNum == 1)
+                    rbCamera2.Enabled = false;
             }
             if ((chooseHIK) && (!chooseBasler))
             {
@@ -374,16 +380,22 @@ namespace PaddleXCsharp
                 if (rbCamera1.Checked)
                 {
                     // 连续采集模式
-                    cameraArr1[0].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
-                    cameraArr1[0].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
-                    lblCam1.BackColor = Color.Green;
+                    if(false == cameraArr1[0].StreamGrabber.IsGrabbing)
+                    {
+                        cameraArr1[0].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
+                        cameraArr1[0].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
+                        lblCam1.BackColor = Color.Green;
+                    } 
                 }
 
-                else if (rbCamera2.Checked)
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
                 {
-                    cameraArr1[1].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
-                    cameraArr1[1].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
-                    lblCam2.BackColor = Color.Green;
+                    if(false == cameraArr1[1].StreamGrabber.IsGrabbing)
+                    {
+                        cameraArr1[1].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
+                        cameraArr1[1].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
+                        lblCam2.BackColor = Color.Green;
+                    }
                 }
                 // 控件操作
                 SetCtrlWhenStartGrab();
@@ -406,7 +418,7 @@ namespace PaddleXCsharp
                     lblCam1.BackColor = Color.Yellow;
                 }
                 // 2号相机被选中
-                else if (rbCamera2.Checked)
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
                 {
                     cameraArr1[1].StreamGrabber.Stop();
                     lblCam2.BackColor = Color.Yellow;
@@ -434,15 +446,31 @@ namespace PaddleXCsharp
                 IGrabResult grabResult = e.GrabResult;
                 if (grabResult.IsValid)
                 {
-                    Bitmap bm = (Bitmap)pic.Image;
-                    if (false == BitmapFactory.IsCompatible(bm, grabResult.Width, grabResult.Height, false))
+                    // 四通道RGBA
+                    Bitmap bitmap = new Bitmap(grabResult.Width, grabResult.Height, PixelFormat.Format32bppRgb);
+                    // 锁定位图的位
+                    BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                    // 将指针放置到位图的缓冲区
+                    converter.OutputPixelFormat = PixelType.BGRA8packed;
+                    IntPtr ptrBmp = bmpData.Scan0;
+                    converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
+                    bitmap.UnlockBits(bmpData);
+                    if (pic.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
                     {
-                        BitmapFactory.CreateBitmap(out bm, grabResult.Width, grabResult.Height, false);
-                        pic.Image = bm;
+                        UpdateUI update = delegate { pic.Image = bitmap; };
+                        pic.BeginInvoke(update);
                     }
-                    BitmapFactory.UpdateBitmap(bm, (byte[])grabResult.PixelData, grabResult.Width, grabResult.Height, false);
+                    else { pic.Image = bitmap; }
 
-                    pic.Refresh();
+                    //Bitmap bm = (Bitmap)pic.Image;
+                    //if (false == BitmapFactory.IsCompatible(bm, grabResult.Width, grabResult.Height, true))
+                    //{
+                    //    BitmapFactory.CreateBitmap(out bm, grabResult.Width, grabResult.Height, true);
+                    //    pic.Image = bm;
+                    //}
+                    //BitmapFactory.UpdateBitmap(bm, (byte[])grabResult.PixelData, grabResult.Width, grabResult.Height, false);
+
+                    //pic.Refresh();
 
                 }
             }
@@ -458,20 +486,20 @@ namespace PaddleXCsharp
 
         private void OnImageGrabbed_1(Object sender, ImageGrabbedEventArgs e)
         {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_1), sender, e.Clone());
-                return;
-            }
+            //if (InvokeRequired)
+            //{
+            //    BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_1), sender, e.Clone());
+            //    return;
+            //}
             OnImageGrabbed("CAM1", e, pictureBox1);
         }
         private void OnImageGrabbed_2(Object sender, ImageGrabbedEventArgs e)
         {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_2), sender, e.Clone());
-                return;
-            }
+            //if (InvokeRequired)
+            //{
+            //    BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_2), sender, e.Clone());
+            //    return;
+            //}
             OnImageGrabbed("CAM2", e, pictureBox2);
         }
 
@@ -493,11 +521,10 @@ namespace PaddleXCsharp
                 if(rbCamera1.Checked)
                     // 获取参数
                     baslerCamera.GetParam(ref gain, ref exposure, cameraArr1[0]);
-                else if(rbCamera2.Checked)
+                else if(rbCamera2.Checked && cameraUsingNum > 1)
                     // 获取参数
                     baslerCamera.GetParam(ref gain, ref exposure, cameraArr1[1]);
-                    
-                Console.WriteLine(cameraArr1[0].IsOpen);
+                // 显示
                 tbGain.Text = gain;
                 tbExposure.Text = exposure;
             }
@@ -519,12 +546,19 @@ namespace PaddleXCsharp
             }
             else if ((chooseBasler) && (!chooseHIK))
             {
-                long exposure = long.Parse(tbExposure.Text);
-                long gain = long.Parse(tbGain.Text);
-                if (rbCamera1.Checked)
-                    baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[0]);
-                else if (rbCamera2.Checked)
-                    baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[1]);
+                try
+                {
+                    long exposure = long.Parse(tbExposure.Text);
+                    long gain = long.Parse(tbGain.Text);
+                    if (rbCamera1.Checked)
+                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[0]);
+                    else if (rbCamera2.Checked && cameraUsingNum > 1)
+                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[1]);
+                }
+                catch
+                {
+                    MessageBox.Show("请检查输入的参数值或所选相机序号是否正确！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 // 显示真实值
                 tbGain.Text = gainshow;
                 tbExposure.Text = exposureshow;
