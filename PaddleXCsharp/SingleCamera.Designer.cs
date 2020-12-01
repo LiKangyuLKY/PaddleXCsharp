@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SingleCamera));
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.tbModeltype = new System.Windows.Forms.TextBox();
             this.bnLoadModel = new System.Windows.Forms.Button();
             this.bnStartDetection = new System.Windows.Forms.Button();
             this.bnSaveImage = new System.Windows.Forms.Button();
@@ -62,23 +63,34 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.tbModeltype);
             this.groupBox5.Controls.Add(this.bnLoadModel);
             this.groupBox5.Controls.Add(this.bnStartDetection);
             this.groupBox5.Controls.Add(this.bnSaveImage);
             this.groupBox5.Controls.Add(this.bnStopDetection);
             this.groupBox5.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.groupBox5.Location = new System.Drawing.Point(831, 508);
+            this.groupBox5.Location = new System.Drawing.Point(971, 554);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(260, 198);
+            this.groupBox5.Size = new System.Drawing.Size(243, 191);
             this.groupBox5.TabIndex = 40;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "检测操作";
+            // 
+            // tbModeltype
+            // 
+            this.tbModeltype.Enabled = false;
+            this.tbModeltype.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.tbModeltype.Location = new System.Drawing.Point(131, 36);
+            this.tbModeltype.Name = "tbModeltype";
+            this.tbModeltype.Size = new System.Drawing.Size(100, 23);
+            this.tbModeltype.TabIndex = 41;
+            this.tbModeltype.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // bnLoadModel
             // 
             this.bnLoadModel.Enabled = false;
             this.bnLoadModel.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnLoadModel.Location = new System.Drawing.Point(25, 36);
+            this.bnLoadModel.Location = new System.Drawing.Point(15, 36);
             this.bnLoadModel.Name = "bnLoadModel";
             this.bnLoadModel.Size = new System.Drawing.Size(100, 25);
             this.bnLoadModel.TabIndex = 13;
@@ -90,7 +102,7 @@
             // 
             this.bnStartDetection.Enabled = false;
             this.bnStartDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnStartDetection.Location = new System.Drawing.Point(141, 36);
+            this.bnStartDetection.Location = new System.Drawing.Point(15, 78);
             this.bnStartDetection.Name = "bnStartDetection";
             this.bnStartDetection.Size = new System.Drawing.Size(100, 25);
             this.bnStartDetection.TabIndex = 14;
@@ -101,7 +113,7 @@
             // bnSaveImage
             // 
             this.bnSaveImage.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnSaveImage.Location = new System.Drawing.Point(141, 77);
+            this.bnSaveImage.Location = new System.Drawing.Point(15, 120);
             this.bnSaveImage.Name = "bnSaveImage";
             this.bnSaveImage.Size = new System.Drawing.Size(100, 25);
             this.bnSaveImage.TabIndex = 16;
@@ -113,7 +125,7 @@
             // 
             this.bnStopDetection.Enabled = false;
             this.bnStopDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnStopDetection.Location = new System.Drawing.Point(25, 78);
+            this.bnStopDetection.Location = new System.Drawing.Point(131, 78);
             this.bnStopDetection.Name = "bnStopDetection";
             this.bnStopDetection.Size = new System.Drawing.Size(100, 25);
             this.bnStopDetection.TabIndex = 15;
@@ -125,7 +137,7 @@
             // 
             this.bnSetParam.Enabled = false;
             this.bnSetParam.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.bnSetParam.Location = new System.Drawing.Point(141, 76);
+            this.bnSetParam.Location = new System.Drawing.Point(131, 76);
             this.bnSetParam.Name = "bnSetParam";
             this.bnSetParam.Size = new System.Drawing.Size(100, 25);
             this.bnSetParam.TabIndex = 8;
@@ -137,7 +149,7 @@
             // 
             this.bnGetParam.Enabled = false;
             this.bnGetParam.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.bnGetParam.Location = new System.Drawing.Point(25, 76);
+            this.bnGetParam.Location = new System.Drawing.Point(15, 76);
             this.bnGetParam.Name = "bnGetParam";
             this.bnGetParam.Size = new System.Drawing.Size(100, 25);
             this.bnGetParam.TabIndex = 7;
@@ -149,7 +161,7 @@
             // 
             this.bnStopGrab.Enabled = false;
             this.bnStopGrab.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.bnStopGrab.Location = new System.Drawing.Point(141, 31);
+            this.bnStopGrab.Location = new System.Drawing.Point(131, 31);
             this.bnStopGrab.Name = "bnStopGrab";
             this.bnStopGrab.Size = new System.Drawing.Size(100, 25);
             this.bnStopGrab.TabIndex = 6;
@@ -161,7 +173,7 @@
             // 
             this.bnStartGrab.Enabled = false;
             this.bnStartGrab.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.bnStartGrab.Location = new System.Drawing.Point(25, 31);
+            this.bnStartGrab.Location = new System.Drawing.Point(15, 31);
             this.bnStartGrab.Name = "bnStartGrab";
             this.bnStartGrab.Size = new System.Drawing.Size(100, 25);
             this.bnStartGrab.TabIndex = 5;
@@ -173,7 +185,7 @@
             // 
             this.tbGain.Enabled = false;
             this.tbGain.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.tbGain.Location = new System.Drawing.Point(141, 164);
+            this.tbGain.Location = new System.Drawing.Point(131, 164);
             this.tbGain.Name = "tbGain";
             this.tbGain.Size = new System.Drawing.Size(100, 23);
             this.tbGain.TabIndex = 12;
@@ -183,7 +195,7 @@
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label2.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label2.Location = new System.Drawing.Point(25, 167);
+            this.label2.Location = new System.Drawing.Point(15, 167);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(49, 14);
             this.label2.TabIndex = 11;
@@ -194,7 +206,7 @@
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label1.Location = new System.Drawing.Point(25, 124);
+            this.label1.Location = new System.Drawing.Point(15, 124);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(49, 14);
             this.label1.TabIndex = 9;
@@ -204,7 +216,7 @@
             // 
             this.tbExposure.Enabled = false;
             this.tbExposure.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.tbExposure.Location = new System.Drawing.Point(141, 121);
+            this.tbExposure.Location = new System.Drawing.Point(131, 121);
             this.tbExposure.Name = "tbExposure";
             this.tbExposure.Size = new System.Drawing.Size(100, 23);
             this.tbExposure.TabIndex = 10;
@@ -215,7 +227,7 @@
             this.cbDeviceList.FormattingEnabled = true;
             this.cbDeviceList.Location = new System.Drawing.Point(12, 6);
             this.cbDeviceList.Name = "cbDeviceList";
-            this.cbDeviceList.Size = new System.Drawing.Size(803, 22);
+            this.cbDeviceList.Size = new System.Drawing.Size(940, 22);
             this.cbDeviceList.TabIndex = 0;
             // 
             // groupBox2
@@ -229,9 +241,9 @@
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.tbExposure);
             this.groupBox2.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.groupBox2.Location = new System.Drawing.Point(831, 293);
+            this.groupBox2.Location = new System.Drawing.Point(971, 339);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(260, 209);
+            this.groupBox2.Size = new System.Drawing.Size(243, 209);
             this.groupBox2.TabIndex = 18;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "相机操作";
@@ -240,9 +252,9 @@
             // 
             this.pictureBox2.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pictureBox2.BackgroundImage")));
             this.pictureBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pictureBox2.Location = new System.Drawing.Point(849, -11);
+            this.pictureBox2.Location = new System.Drawing.Point(971, -7);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(223, 191);
+            this.pictureBox2.Size = new System.Drawing.Size(243, 207);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 39;
             this.pictureBox2.TabStop = false;
@@ -253,7 +265,7 @@
             this.groupBox4.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox4.Location = new System.Drawing.Point(12, 35);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(803, 603);
+            this.groupBox4.Size = new System.Drawing.Size(940, 710);
             this.groupBox4.TabIndex = 19;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "检测界面";
@@ -263,7 +275,7 @@
             this.pictureBox1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.pictureBox1.Location = new System.Drawing.Point(18, 29);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(769, 558);
+            this.pictureBox1.Size = new System.Drawing.Size(901, 665);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 27;
             this.pictureBox1.TabStop = false;
@@ -275,7 +287,7 @@
             this.cameraType.Items.AddRange(new object[] {
             "海康相机",
             "Basler相机"});
-            this.cameraType.Location = new System.Drawing.Point(25, 26);
+            this.cameraType.Location = new System.Drawing.Point(15, 26);
             this.cameraType.Name = "cameraType";
             this.cameraType.Size = new System.Drawing.Size(100, 22);
             this.cameraType.TabIndex = 1;
@@ -284,7 +296,7 @@
             // 
             this.bnClose.Enabled = false;
             this.bnClose.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnClose.Location = new System.Drawing.Point(141, 68);
+            this.bnClose.Location = new System.Drawing.Point(131, 68);
             this.bnClose.Name = "bnClose";
             this.bnClose.Size = new System.Drawing.Size(100, 25);
             this.bnClose.TabIndex = 4;
@@ -299,9 +311,9 @@
             this.groupBox3.Controls.Add(this.bnEnum);
             this.groupBox3.Controls.Add(this.bnOpen);
             this.groupBox3.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.groupBox3.Location = new System.Drawing.Point(831, 160);
+            this.groupBox3.Location = new System.Drawing.Point(971, 206);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(260, 114);
+            this.groupBox3.Size = new System.Drawing.Size(243, 114);
             this.groupBox3.TabIndex = 17;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "初始化";
@@ -309,7 +321,7 @@
             // bnEnum
             // 
             this.bnEnum.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnEnum.Location = new System.Drawing.Point(141, 26);
+            this.bnEnum.Location = new System.Drawing.Point(131, 26);
             this.bnEnum.Name = "bnEnum";
             this.bnEnum.Size = new System.Drawing.Size(100, 25);
             this.bnEnum.TabIndex = 2;
@@ -320,7 +332,7 @@
             // bnOpen
             // 
             this.bnOpen.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnOpen.Location = new System.Drawing.Point(25, 68);
+            this.bnOpen.Location = new System.Drawing.Point(15, 68);
             this.bnOpen.Name = "bnOpen";
             this.bnOpen.Size = new System.Drawing.Size(100, 25);
             this.bnOpen.TabIndex = 3;
@@ -332,7 +344,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1103, 718);
+            this.ClientSize = new System.Drawing.Size(1230, 757);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.cbDeviceList);
             this.Controls.Add(this.groupBox2);
@@ -345,6 +357,7 @@
             this.Text = " 深度学习工业检测（单相机模式）";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SingleCamera_FormClosing);
             this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
@@ -380,5 +393,6 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button bnEnum;
         private System.Windows.Forms.Button bnOpen;
+        private System.Windows.Forms.TextBox tbModeltype;
     }
 }

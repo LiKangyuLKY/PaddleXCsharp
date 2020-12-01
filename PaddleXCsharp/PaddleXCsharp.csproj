@@ -76,6 +76,10 @@
     <Reference Include="OpenCvSharp.UserInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenCvSharp3-AnyCPU.4.0.0.20181129\lib\net461\OpenCvSharp.UserInterface.dll</HintPath>
     </Reference>
+    <Reference Include="PylonC.NET, Version=4.2.0.0, Culture=neutral, PublicKeyToken=a77e8471c5919d5a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\x64\Debug\PylonC.NET.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -90,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaslerDeviceSource.cs" />
+    <Compile Include="BitmapFactory.cs" />
     <Compile Include="DoubleCamera.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +116,9 @@
     <Compile Include="SingleCamera.Designer.cs">
       <DependentUpon>SingleCamera.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="DoubleCamera.resx">
+      <DependentUpon>DoubleCamera.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>

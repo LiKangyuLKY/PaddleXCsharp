@@ -23,7 +23,7 @@ namespace PaddleXCsharp
         Thread baslerGrabThread = null;
         private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
 
-        bool balserCanGrab = false;    // 控制相机是否Grab
+        bool baslerCanGrab = false;    // 控制相机是否Grab
         bool chooseBasler = false;     // Basler相机打开标志
 
         /* ================================= 海康相机 ================================= */
@@ -59,7 +59,7 @@ namespace PaddleXCsharp
 
         // 定义PaddlexDetPredict接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern IntPtr PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels,IntPtr[] result);
+        static extern IntPtr PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, IntPtr[] result);
         #endregion
 
         public SingleCamera()
@@ -215,8 +215,7 @@ namespace PaddleXCsharp
             {
                 try
                 {
-                    camera2 = hIKVisionCamera.CameraInit(cbDeviceList.SelectedIndex);
-
+                    camera2 = hIKVisionCamera.CameraInit(cbDeviceList.SelectedIndex); 
                     // 获取参数
                     BnGetParam_Click(null, null);
 
@@ -284,9 +283,9 @@ namespace PaddleXCsharp
             {
                 try
                 {
-                    if (balserCanGrab == true)
+                    if (baslerCanGrab == true)
                     {
-                        balserCanGrab = false;
+                        baslerCanGrab = false;
                         baslerGrabThread.Join();
                     }
                     // 释放相机
@@ -352,7 +351,7 @@ namespace PaddleXCsharp
         }
             else if ((chooseBasler) && (!chooseHIK))
             {
-                while (balserCanGrab)
+                while (baslerCanGrab)
                 {
                     IGrabResult grabResult;
                     using (grabResult = camera1.StreamGrabber.RetrieveResult(5000, TimeoutHandling.ThrowException))
@@ -416,7 +415,7 @@ namespace PaddleXCsharp
                 try
                 {
                     // 标志符号
-                    balserCanGrab = true;
+                    baslerCanGrab = true;
                     // 开始Grab
                     baslerCamera.StartGrabbing();
                     // 用线程更新显示
@@ -427,7 +426,7 @@ namespace PaddleXCsharp
                 }
                 catch
                 {
-                    balserCanGrab = false;
+                    baslerCanGrab = false;
                     baslerGrabThread.Join();
                     MessageBox.Show("开始采集失败，请重启！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
@@ -458,7 +457,7 @@ namespace PaddleXCsharp
             {
                 try
                 { 
-                    balserCanGrab = false;  // 标志位设为false
+                    baslerCanGrab = false;  // 标志位设为false
                     baslerGrabThread.Join();  // 主线程阻塞，等待线程结束
                     baslerCamera.StopGrabbing();  // 停止采集
                     SetCtrlWhenStopGrab();  // 控件操作
@@ -487,7 +486,7 @@ namespace PaddleXCsharp
             else if ((chooseBasler) && (!chooseHIK))
             {
                 // 获取参数
-                baslerCamera.GetParam(ref gain, ref exposure);
+                baslerCamera.GetParam(ref gain, ref exposure, camera1);
                 tbGain.Text = gain;
                 tbExposure.Text = exposure;
             }
@@ -509,27 +508,13 @@ namespace PaddleXCsharp
             {
                 long exposure = long.Parse(tbExposure.Text);
                 long gain = long.Parse(tbGain.Text);
-                baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow);
+                baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, camera1);
                 // 显示真实值
                 tbGain.Text = gainshow;
                 tbExposure.Text = exposureshow;
             }
         }
         #endregion
-
-        // 去除自定义的像素格式
-        private bool RemoveCustomPixelFormats(MyCamera.MvGvspPixelType enPixelFormat)
-        {
-            Int32 nResult = ((int)enPixelFormat) & (unchecked((Int32)0x80000000));
-            if (0x80000000 == nResult)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
 
         // 加载模型
         private void BnLoadModel_Click(object sender, EventArgs e)
@@ -550,6 +535,12 @@ namespace PaddleXCsharp
                 
                 IntPtr a = new IntPtr(modelType);
                 model = CreatePaddlexModel(ref modelType, modelPath, useGPU, useTrt, useMkl, mklThreadNum, gpuID, key, useIrOptim);
+                switch (modelType)
+                {
+                    case 0: tbModeltype.Text = "0：图像分类"; break;
+                    case 1: tbModeltype.Text = "1：目标检测"; break;
+                    case 2: tbModeltype.Text = "2：语义分割"; break;
+                }
 
                 bnStartDetection.Enabled = true;
                 bnStopDetection.Enabled = true;
@@ -584,18 +575,18 @@ namespace PaddleXCsharp
 
             byte[] source = GetbyteData(bmp);
             IntPtr[] result = new IntPtr[100];
-            //IntPtr result = Marshal.AllocHGlobal(24); // 结构体在使用时一定要分配空间(6*sizeof(float))
-
+            //IntPtr result = Marshal.AllocHGlobal(28); // 结构体在使用时一定要分配空间(7*sizeof(float))
             IntPtr resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, result);
-
-            //Marshal.WriteInt32(result, 24); // 向内存块里写入数值
-            //Console.WriteLine("--category_id:{0}", Marshal.ReadInt32(result, 0));
-            //Console.WriteLine("--score:{0}", Marshal.ReadInt32(result, 4)); //移动4个字节
-            //Console.WriteLine("--coordinate1: " + Marshal.ReadInt32(result, 8));
-            //Console.WriteLine("--coordinate2: " + Marshal.ReadInt32(result, 12));
-            //Console.WriteLine("--coordinate3: " + Marshal.ReadInt32(result, 16));
-            //Console.WriteLine("--coordinate4: " + Marshal.ReadInt32(result, 20));
-
+            
+            //Marshal.WriteInt32(result, 28); // 向内存块里写入数值
+            //Console.WriteLine("--box_num:{0}", Marshal.ReadInt32(result, 0));
+            //Console.WriteLine("--category_id:{0}", Marshal.ReadInt32(result, 4));
+            //Console.WriteLine("--score:{0}", Marshal.ReadInt32(result, 8)); //移动4个字节
+            //Console.WriteLine("--coordinate1: " + Marshal.ReadInt32(result, 12));
+            //Console.WriteLine("--coordinate2: " + Marshal.ReadInt32(result, 16));
+            //Console.WriteLine("--coordinate3: " + Marshal.ReadInt32(result, 20));
+            //Console.WriteLine("--coordinate4: " + Marshal.ReadInt32(result, 24));
+            Console.WriteLine(result);
             Bitmap resultShow;
             Mat img = new Mat(resultImage);
             switch (channel)
@@ -642,8 +633,6 @@ namespace PaddleXCsharp
         private void SingleCamera_FormClosing(object sender, FormClosingEventArgs e)
         {
             BnClose_Click(sender, e);
-            //hIKVisionCamera.DestroyCamera();
-            //baslerCamera.DestroyCamera();
             System.Environment.Exit(0);
         }
     }
