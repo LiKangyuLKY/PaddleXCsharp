@@ -94,7 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaslerDeviceSource.cs" />
-    <Compile Include="BitmapFactory.cs" />
     <Compile Include="DoubleCamera.cs">
       <SubType>Form</SubType>
     </Compile>

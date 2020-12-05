@@ -11,6 +11,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
+using System.Diagnostics;
+
 namespace PaddleXCsharp
 {
     public partial class SingleCamera : Form
@@ -577,7 +579,6 @@ namespace PaddleXCsharp
             IntPtr[] result = new IntPtr[100];
             //IntPtr result = Marshal.AllocHGlobal(28); // 结构体在使用时一定要分配空间(7*sizeof(float))
             IntPtr resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, result);
-            
             //Marshal.WriteInt32(result, 28); // 向内存块里写入数值
             //Console.WriteLine("--box_num:{0}", Marshal.ReadInt32(result, 0));
             //Console.WriteLine("--category_id:{0}", Marshal.ReadInt32(result, 4));
@@ -586,7 +587,6 @@ namespace PaddleXCsharp
             //Console.WriteLine("--coordinate2: " + Marshal.ReadInt32(result, 16));
             //Console.WriteLine("--coordinate3: " + Marshal.ReadInt32(result, 20));
             //Console.WriteLine("--coordinate4: " + Marshal.ReadInt32(result, 24));
-            Console.WriteLine(result);
             Bitmap resultShow;
             Mat img = new Mat(resultImage);
             switch (channel)

@@ -44,28 +44,30 @@ namespace PaddleXCsharp
         //IntPtr m_BufForDriver;
 
         ///* ================================= inference ================================= */
-        //#region 接口定义及参数
-        //int modelType = 1;  // 模型的类型  0：分类模型；1：检测模型；2：分割模型
-        //string modelPath = ""; // 模型目录路径
-        //bool useGPU = false;  // 是否使用GPU
-        //bool useTrt = false;  // 是否使用TensorRT
-        //bool useMkl = true;  // 是否使用MKLDNN加速模型在CPU上的预测性能
-        //int mklThreadNum = 16; // 使用MKLDNN时，线程数量
-        //int gpuID = 0; // 使用GPU的ID号
-        //string key = ""; //模型解密密钥，此参数用于加载加密的PaddleX模型时使用
-        //bool useIrOptim = false; // 是否加速模型后进行图优化
+        #region 接口定义及参数
+        int modelType = 1;  // 模型的类型  0：分类模型；1：检测模型；2：分割模型
+        string modelPath = ""; // 模型目录路径
+        bool useGPU = false;  // 是否使用GPU
+        bool useTrt = false;  // 是否使用TensorRT
+        bool useMkl = true;  // 是否使用MKLDNN加速模型在CPU上的预测性能
+        int mklThreadNum = 16; // 使用MKLDNN时，线程数量
+        int gpuID = 0; // 使用GPU的ID号
+        string key = ""; //模型解密密钥，此参数用于加载加密的PaddleX模型时使用
+        bool useIrOptim = false; // 是否加速模型后进行图优化
 
-        //bool isInference = false;  // 是否进行推理   
-        //IntPtr model; // 模型
+        bool isInference1 = false;  // 是否进行推理   
+        bool isInference2 = false;
+        IntPtr model1; // 模型
+        IntPtr model2;
 
-        //// 定义CreatePaddlexModel接口
-        //[DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
-        //static extern IntPtr CreatePaddlexModel(ref int modelType, string modelPath, bool useGPU, bool useTrt, bool useMkl, int mklThreadNum, int gpuID, string key, bool useIrOptim);
+        // 定义CreatePaddlexModel接口
+        [DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
+        static extern IntPtr CreatePaddlexModel(ref int modelType, string modelPath, bool useGPU, bool useTrt, bool useMkl, int mklThreadNum, int gpuID, string key, bool useIrOptim);
 
-        //// 定义PaddlexDetPredict接口
-        //[DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        //static extern IntPtr PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, IntPtr[] result);
-        //#endregion
+        // 定义PaddlexDetPredict接口
+        [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, IntPtr[] result);
+        #endregion
 
         public DoubleCamera()
         {
@@ -265,90 +267,6 @@ namespace PaddleXCsharp
             }
         }
 
-        // 采集进程1
-        //public void GrabThreadProcess()
-        //{
-        //    if ((chooseHIK) && (!chooseBasler))
-        //    {
-        //        MyCamera.MVCC_INTVALUE stParam = new MyCamera.MVCC_INTVALUE();
-        //        camera2.MV_CC_GetIntValue_NET("PayloadSize", ref stParam);
-        //        UInt32 nPayloadSize = stParam.nCurValue;
-        //        if (nPayloadSize > m_nBufSizeForDriver)
-        //        {
-        //            if (m_BufForDriver != IntPtr.Zero)
-        //            {
-        //                Marshal.Release(m_BufForDriver);
-        //            }
-        //            m_nBufSizeForDriver = nPayloadSize;
-        //            m_BufForDriver = Marshal.AllocHGlobal((Int32)m_nBufSizeForDriver);
-        //        }
-        //        if (m_BufForDriver == IntPtr.Zero)
-        //        {
-        //            return;
-        //        }
-
-        //        MyCamera.MV_FRAME_OUT_INFO_EX stFrameInfo = new MyCamera.MV_FRAME_OUT_INFO_EX();  // 定义输出帧信息结构体
-        //        IntPtr pTemp = IntPtr.Zero;
-
-        //        while (hikCanGrab)
-        //        {
-        //            // 将海康数据类型转为Mat
-        //            int nRet = camera2.MV_CC_GetOneFrameTimeout_NET(m_BufForDriver, nPayloadSize, ref stFrameInfo, 1000); // m_BufForDriver为图像数据接收指针
-        //            pTemp = m_BufForDriver;
-        //            byte[] byteImage = new byte[stFrameInfo.nHeight * stFrameInfo.nWidth];
-        //            Marshal.Copy(m_BufForDriver, byteImage, 0, stFrameInfo.nHeight * stFrameInfo.nWidth);
-        //            Mat matImage = new Mat(stFrameInfo.nHeight, stFrameInfo.nWidth, MatType.CV_8UC1, byteImage);
-        //            // 单通道图像转为三通道
-        //            Mat matImageNew = new Mat();
-        //            Cv2.CvtColor(matImage, matImageNew, ColorConversionCodes.GRAY2RGB);
-        //            Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap
-        //            // 是否进行推理
-        //            //if (isInference)  bitmap = Inference(bitmap); 
-        //            if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
-        //            {
-        //                UpdateUI update = delegate { pictureBox1.Image = bitmap; };
-        //                pictureBox1.BeginInvoke(update);
-        //            }
-        //            else { pictureBox1.Image = bitmap; }
-        //        }
-        //    }
-        //    else if ((chooseBasler) && (!chooseHIK))
-        //    {  
-        //        while (baslerCanGrab)
-        //        {
-        //            IGrabResult grabResult1;
-        //            //IGrabResult grabResult2 = cameraArr1[1].StreamGrabber.RetrieveResult(5000, TimeoutHandling.ThrowException);
-        //            using (grabResult1 = cameraArr1[0].StreamGrabber.RetrieveResult(5000, TimeoutHandling.ThrowException))
-        //            {
-        //                if (grabResult1.GrabSucceeded)
-        //                {
-        //                    // 四通道RGBA
-        //                    Bitmap bitmap = new Bitmap(grabResult1.Width, grabResult1.Height, PixelFormat.Format32bppRgb);
-        //                    // 锁定位图的位
-        //                    BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
-        //                    // 将指针放置到位图的缓冲区
-        //                    converter.OutputPixelFormat = PixelType.BGRA8packed;
-        //                    IntPtr ptrBmp = bmpData.Scan0;
-        //                    converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult1);
-        //                    bitmap.UnlockBits(bmpData);
-        //                    // 是否进行推理
-        //                    //if (isInference) bitmap = Inference(bitmap);
-        //                    // 禁止跨线程直接访问控件，故invoke到主线程中
-        //                    // 参考：https://bbs.csdn.net/topics/350050105
-        //                    //       https://www.cnblogs.com/lky-learning/p/14025280.html
-        //                    if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
-        //                    {
-        //                        UpdateUI update = delegate { pictureBox1.Image = bitmap; };
-        //                        pictureBox1.BeginInvoke(update);
-        //                    }
-        //                    else { pictureBox1.Image = bitmap; }
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
-        // 开始采集
         private void BnStartGrab_Click(object sender, EventArgs e)
         {
             if ((chooseHIK) && (!chooseBasler))
@@ -423,6 +341,7 @@ namespace PaddleXCsharp
                     cameraArr1[1].StreamGrabber.Stop();
                     lblCam2.BackColor = Color.Yellow;
                 }
+                SetCtrlWhenStopGrab();
             }
         }
 
@@ -439,10 +358,47 @@ namespace PaddleXCsharp
             }
         }
 
-        private void OnImageGrabbed(string camName, ImageGrabbedEventArgs e, PictureBox pic)
+        //private void OnImageGrabbed(string camName, ImageGrabbedEventArgs e, PictureBox pic)
+        //{
+        //    try
+        //    {
+        //        IGrabResult grabResult = e.GrabResult;
+        //        if (grabResult.IsValid)
+        //        {
+        //            // 四通道RGBA
+        //            Bitmap bitmap = new Bitmap(grabResult.Width, grabResult.Height, PixelFormat.Format32bppRgb);
+        //            // 锁定位图的位
+        //            BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+        //            // 将指针放置到位图的缓冲区
+        //            converter.OutputPixelFormat = PixelType.BGRA8packed;
+        //            IntPtr ptrBmp = bmpData.Scan0;
+        //            converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
+        //            bitmap.UnlockBits(bmpData);
+
+        //            if (isInference) { bitmap = Inference(bitmap); }
+        //            if (pic.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+        //            {
+        //                UpdateUI update = delegate { pic.Image = bitmap; };
+        //                pic.BeginInvoke(update);
+        //            }
+        //            else { pic.Image = bitmap; }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(string.Format("CAM:{0}！\n{1}", camName, ex.Message));
+        //    }
+        //    finally
+        //    {
+        //        e.DisposeGrabResultIfClone();
+        //    }
+        //}
+
+        private void OnImageGrabbed_1(Object sender, ImageGrabbedEventArgs e)
         {
-            try
-            {
+            //OnImageGrabbed("CAM1", e, pictureBox1);
+            //try
+            //{
                 IGrabResult grabResult = e.GrabResult;
                 if (grabResult.IsValid)
                 {
@@ -455,52 +411,60 @@ namespace PaddleXCsharp
                     IntPtr ptrBmp = bmpData.Scan0;
                     converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
                     bitmap.UnlockBits(bmpData);
-                    if (pic.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+                    DeepLearning deepLearning = new DeepLearning();
+                    if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }
+                    if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
                     {
-                        UpdateUI update = delegate { pic.Image = bitmap; };
-                        pic.BeginInvoke(update);
+                        UpdateUI update = delegate { pictureBox1.Image = bitmap; };
+                        pictureBox1.BeginInvoke(update);
                     }
-                    else { pic.Image = bitmap; }
-
-                    //Bitmap bm = (Bitmap)pic.Image;
-                    //if (false == BitmapFactory.IsCompatible(bm, grabResult.Width, grabResult.Height, true))
-                    //{
-                    //    BitmapFactory.CreateBitmap(out bm, grabResult.Width, grabResult.Height, true);
-                    //    pic.Image = bm;
-                    //}
-                    //BitmapFactory.UpdateBitmap(bm, (byte[])grabResult.PixelData, grabResult.Width, grabResult.Height, false);
-
-                    //pic.Refresh();
-
+                    else { pictureBox1.Image = bitmap; }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("CAM:{0}！\n{1}", camName, ex.Message));
-            }
-            finally
-            {
-                e.DisposeGrabResultIfClone();
-            }
-        }
-
-        private void OnImageGrabbed_1(Object sender, ImageGrabbedEventArgs e)
-        {
-            //if (InvokeRequired)
-            //{
-            //    BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_1), sender, e.Clone());
-            //    return;
             //}
-            OnImageGrabbed("CAM1", e, pictureBox1);
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM1", ex.Message));
+            //}
+            //finally
+            //{
+            //    e.DisposeGrabResultIfClone();
+            //}
         }
         private void OnImageGrabbed_2(Object sender, ImageGrabbedEventArgs e)
         {
-            //if (InvokeRequired)
+            //OnImageGrabbed("CAM2", e, pictureBox2);
+            //try
             //{
-            //    BeginInvoke(new EventHandler<ImageGrabbedEventArgs>(OnImageGrabbed_2), sender, e.Clone());
-            //    return;
+                IGrabResult grabResult = e.GrabResult;
+                if (grabResult.IsValid)
+                {
+                    // 四通道RGBA
+                    Bitmap bitmap = new Bitmap(grabResult.Width, grabResult.Height, PixelFormat.Format32bppRgb);
+                    // 锁定位图的位
+                    BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                    // 将指针放置到位图的缓冲区
+                    converter.OutputPixelFormat = PixelType.BGRA8packed;
+                    IntPtr ptrBmp = bmpData.Scan0;
+                    converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
+                    bitmap.UnlockBits(bmpData);
+                    DeepLearning deepLearning = new DeepLearning();
+                    if (isInference2) { bitmap = deepLearning.Inference(model2, bitmap); }
+                    if (pictureBox2.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+                    {
+                        UpdateUI update = delegate { pictureBox2.Image = bitmap; };
+                        pictureBox2.BeginInvoke(update);
+                    }
+                    else { pictureBox2.Image = bitmap; }
+                }
             //}
-            OnImageGrabbed("CAM2", e, pictureBox2);
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM2", ex.Message));
+            //}
+            //finally
+            //{
+            //    e.DisposeGrabResultIfClone();
+            //}
         }
 
         // 获取参数
@@ -565,10 +529,155 @@ namespace PaddleXCsharp
             }
         }
 
+        // 加载模型
+        private void BnLoadModel_Click(object sender, EventArgs e)
+        {
+
+            FolderBrowserDialog fileDialog = new FolderBrowserDialog();
+            fileDialog.Description = "请选择模型路径";
+            fileDialog.ShowNewFolderButton = false;
+            if (modelPath != "")
+            {
+                fileDialog.SelectedPath = modelPath;
+            }
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                modelPath = fileDialog.SelectedPath;
+                MessageBox.Show("已选择模型路径:" + modelPath, "选择文件提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+
+                IntPtr a = new IntPtr(modelType);
+                if (rbCamera1.Checked)
+                { 
+                    model1 = CreatePaddlexModel(ref modelType, modelPath, useGPU, useTrt, useMkl, mklThreadNum, gpuID, key, useIrOptim);
+                    switch (modelType)
+                    {
+                        case 0: tbModeltype.Text = "0：图像分类"; break;
+                        case 1: tbModeltype.Text = "1：目标检测"; break;
+                        case 2: tbModeltype.Text = "2：语义分割"; break;
+                    }
+                }
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
+                {
+                    model2 = CreatePaddlexModel(ref modelType, modelPath, useGPU, useTrt, useMkl, mklThreadNum, gpuID, key, useIrOptim);
+                    switch (modelType)
+                    {
+                        case 0: tbModeltype.Text = "0：图像分类"; break;
+                        case 1: tbModeltype.Text = "1：目标检测"; break;
+                        case 2: tbModeltype.Text = "2：语义分割"; break;
+                    }
+                }
+                bnStartDetection.Enabled = true;
+                bnStopDetection.Enabled = true;
+                bnSaveImage.Enabled = true;
+            }
+        }
+
+        // 将Btimap类转换为byte[]类函数
+        public static byte[] GetbyteData(Bitmap bmp)
+        {
+            BitmapData bmpData = null;
+            bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
+            int numbytes = bmpData.Stride * bmpData.Height;
+            byte[] byteData = new byte[numbytes];
+            IntPtr ptr = bmpData.Scan0;
+
+            Marshal.Copy(ptr, byteData, 0, numbytes);
+
+            return byteData;
+        }
+
+        private void BnStartDetection_Click(object sender, EventArgs e)
+        {  
+            if (rbCamera1.Checked)
+            {
+                isInference1 = true;
+                lblCam1.BackColor = Color.Blue;  // 蓝色表示实施推理
+            }
+            else if (rbCamera2.Checked)
+            {
+                isInference2 = true;
+                lblCam2.BackColor = Color.Blue;
+            }         
+        }
+
+        private void BnStopDetection_Click(object sender, EventArgs e)
+        {
+
+            if (rbCamera1.Checked)
+            {
+                isInference1 = false;
+                lblCam1.BackColor = Color.Green;  // 蓝色表示实施推理
+            }
+            else if (rbCamera2.Checked)
+            {
+                isInference2 = false;
+                lblCam2.BackColor = Color.Green;
+            }
+        }
+
+        private void BnSaveImage_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void SingleCamera_FormClosing(object sender, FormClosingEventArgs e)
         {
             BnClose_Click(sender, e);
             System.Environment.Exit(0);
+        }
+
+        class DeepLearning
+        {
+            // 推理
+            public Bitmap Inference(IntPtr model, Bitmap bmp)
+            {
+                int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+
+                byte[] source = GetbyteData(bmp);
+                IntPtr[] result = new IntPtr[100];
+                IntPtr resultImage = new IntPtr();
+                //IntPtr result = Marshal.AllocHGlobal(28); // 结构体在使用时一定要分配空间(7*sizeof(float))
+                //if (rbCamera1.Checked && isInference1)
+                //{
+                //    resultImage = PaddlexDetPredict(model1, source, bmp.Height, bmp.Width, channel, result);
+                //}
+                //else if (rbCamera2.Checked && isInference2)
+                //{
+                //    resultImage = PaddlexDetPredict(model2, source, bmp.Height, bmp.Width, channel, result);
+                //}
+
+                resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, result);
+
+
+                //Marshal.WriteInt32(result, 28); // 向内存块里写入数值
+                //Console.WriteLine("--box_num:{0}", Marshal.ReadInt32(result, 0));
+                //Console.WriteLine("--category_id:{0}", Marshal.ReadInt32(result, 4));
+                //Console.WriteLine("--score:{0}", Marshal.ReadInt32(result, 8)); //移动4个字节
+                //Console.WriteLine("--coordinate1: " + Marshal.ReadInt32(result, 12));
+                //Console.WriteLine("--coordinate2: " + Marshal.ReadInt32(result, 16));
+                //Console.WriteLine("--coordinate3: " + Marshal.ReadInt32(result, 20));
+                //Console.WriteLine("--coordinate4: " + Marshal.ReadInt32(result, 24));
+                Bitmap resultShow;
+                Mat img = new Mat(resultImage);
+                switch (channel)
+                {
+                    case 1:
+                        resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format8bppIndexed, img.Data);
+                        break;
+                    case 2:
+                        resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format16bppGrayScale, img.Data);
+                        break;
+                    case 3:
+                        resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format24bppRgb, img.Data);
+                        break;
+                    default:
+                        resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format32bppArgb, img.Data);
+                        break;
+                }
+                System.GC.Collect();
+                return resultShow;
+            }
         }
     }
 }
