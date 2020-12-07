@@ -56,8 +56,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.tbExposure = new System.Windows.Forms.TextBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.cbInference1 = new System.Windows.Forms.CheckBox();
-            this.cbInference2 = new System.Windows.Forms.CheckBox();
             this.tbModeltype = new System.Windows.Forms.TextBox();
             this.bnLoadModel = new System.Windows.Forms.Button();
             this.bnStartDetection = new System.Windows.Forms.Button();
@@ -376,8 +374,6 @@
             // 
             // groupBox5
             // 
-            this.groupBox5.Controls.Add(this.cbInference1);
-            this.groupBox5.Controls.Add(this.cbInference2);
             this.groupBox5.Controls.Add(this.tbModeltype);
             this.groupBox5.Controls.Add(this.bnLoadModel);
             this.groupBox5.Controls.Add(this.bnStartDetection);
@@ -390,30 +386,6 @@
             this.groupBox5.TabIndex = 44;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "检测操作";
-            // 
-            // cbInference1
-            // 
-            this.cbInference1.AutoSize = true;
-            this.cbInference1.Checked = true;
-            this.cbInference1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbInference1.Location = new System.Drawing.Point(135, 80);
-            this.cbInference1.Name = "cbInference1";
-            this.cbInference1.Size = new System.Drawing.Size(40, 18);
-            this.cbInference1.TabIndex = 44;
-            this.cbInference1.Text = "1#";
-            this.cbInference1.UseVisualStyleBackColor = true;
-            // 
-            // cbInference2
-            // 
-            this.cbInference2.AutoSize = true;
-            this.cbInference2.Checked = true;
-            this.cbInference2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbInference2.Location = new System.Drawing.Point(194, 80);
-            this.cbInference2.Name = "cbInference2";
-            this.cbInference2.Size = new System.Drawing.Size(40, 18);
-            this.cbInference2.TabIndex = 43;
-            this.cbInference2.Text = "2#";
-            this.cbInference2.UseVisualStyleBackColor = true;
             // 
             // tbModeltype
             // 
@@ -452,7 +424,7 @@
             // bnSaveImage
             // 
             this.bnSaveImage.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnSaveImage.Location = new System.Drawing.Point(134, 128);
+            this.bnSaveImage.Location = new System.Drawing.Point(134, 78);
             this.bnSaveImage.Name = "bnSaveImage";
             this.bnSaveImage.Size = new System.Drawing.Size(100, 25);
             this.bnSaveImage.TabIndex = 16;
@@ -534,7 +506,5 @@
         private System.Windows.Forms.Button bnStopDetection;
         private System.Windows.Forms.Label lblCam2;
         private System.Windows.Forms.Label lblCam1;
-        private System.Windows.Forms.CheckBox cbInference1;
-        private System.Windows.Forms.CheckBox cbInference2;
     }
 }
