@@ -140,11 +140,11 @@ namespace PaddleXCsharp
                     {
                         if (items[i][CameraInfoKey.DeviceType] == "BaslerGigE")
                         {
-                            cbDeviceList.Items.Add("GEV: Basler " + items[i][CameraInfoKey.ModelName]);
+                            cbDeviceList.Items.Add("GigE: Basler " + items[i][CameraInfoKey.ModelName]);
                         }
                         else if (items[i][CameraInfoKey.DeviceType] == "BaslerUsb")
                         {
-                            cbDeviceList.Items.Add("U3V: Basler " + items[i][CameraInfoKey.ModelName]);
+                            cbDeviceList.Items.Add("USB: Basler " + items[i][CameraInfoKey.ModelName]);
                         }
                     }
                     // 选择第一项
@@ -310,7 +310,12 @@ namespace PaddleXCsharp
             if ((chooseHIK) && (!chooseBasler))
             {
                 MyCamera.MVCC_INTVALUE stParam = new MyCamera.MVCC_INTVALUE();
-                camera2.MV_CC_GetIntValue_NET("PayloadSize", ref stParam);
+                int nRet = camera2.MV_CC_GetIntValue_NET("PayloadSize", ref stParam);
+                if (MyCamera.MV_OK != nRet)
+                {
+                    MessageBox.Show("Get PayloadSize failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
                 UInt32 nPayloadSize = stParam.nCurValue;
                 if (nPayloadSize > m_nBufSizeForDriver)
                 {
@@ -327,13 +332,13 @@ namespace PaddleXCsharp
                 }
 
                 MyCamera.MV_FRAME_OUT_INFO_EX stFrameInfo = new MyCamera.MV_FRAME_OUT_INFO_EX();  // 定义输出帧信息结构体
-                IntPtr pTemp = IntPtr.Zero;
+                //IntPtr pTemp = IntPtr.Zero;
 
                 while (hikCanGrab)
                 {
                     // 将海康数据类型转为Mat
-                    int nRet = camera2.MV_CC_GetOneFrameTimeout_NET(m_BufForDriver, nPayloadSize, ref stFrameInfo, 1000); // m_BufForDriver为图像数据接收指针
-                    pTemp = m_BufForDriver;
+                    nRet = camera2.MV_CC_GetOneFrameTimeout_NET(m_BufForDriver, nPayloadSize, ref stFrameInfo, 1000); // m_BufForDriver为图像数据接收指针
+                    //pTemp = m_BufForDriver;
                     byte[] byteImage = new byte[stFrameInfo.nHeight * stFrameInfo.nWidth];
                     Marshal.Copy(m_BufForDriver, byteImage, 0, stFrameInfo.nHeight * stFrameInfo.nWidth);
                     Mat matImage = new Mat(stFrameInfo.nHeight, stFrameInfo.nWidth, MatType.CV_8UC1, byteImage);
@@ -481,7 +486,7 @@ namespace PaddleXCsharp
             if ((chooseHIK) && (!chooseBasler))
             {
                 // 获取参数
-                hIKVisionCamera.GetParam(ref gain, ref exposure);
+                hIKVisionCamera.GetParam(ref gain, ref exposure, camera2);
                 tbGain.Text = gain;
                 tbExposure.Text = exposure;
             }
@@ -501,7 +506,7 @@ namespace PaddleXCsharp
             {
                 float exposure = float.Parse(tbExposure.Text);
                 float gain = float.Parse(tbGain.Text);
-                hIKVisionCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow);
+                hIKVisionCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, camera2);
                 // 显示真实值
                 tbGain.Text = gainshow;
                 tbExposure.Text = exposureshow;

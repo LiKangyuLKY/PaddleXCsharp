@@ -18,9 +18,11 @@ namespace HIKDeviceSource
 
         public const int CO_FAIL = -1;
         public const int CO_OK = 0;
+        int cameraNum = 0;
 
         //放出一个Camera
         MyCamera camera = null;
+        MyCamera[] cameraArr = new MyCamera[2];
 
         // 列表
         MyCamera.MV_CC_DEVICE_INFO_LIST deviceList = new MyCamera.MV_CC_DEVICE_INFO_LIST();
@@ -107,6 +109,38 @@ namespace HIKDeviceSource
             return camera;
         }
 
+        public MyCamera[] MultiCameraInit(int Num)
+        {
+            cameraNum = Num;
+            for (int i = 0; i < cameraNum; i++)
+            {
+                MyCamera.MV_CC_DEVICE_INFO device =
+                    (MyCamera.MV_CC_DEVICE_INFO)Marshal.PtrToStructure(deviceList.pDeviceInfo[i],
+                                                                    typeof(MyCamera.MV_CC_DEVICE_INFO));
+                if (null == cameraArr[i])
+                {
+                    cameraArr[i] = new MyCamera();
+                }
+                // 创建设备
+                cameraArr[i].MV_CC_CreateDevice_NET(ref device);
+                // 打开设备
+                cameraArr[i].MV_CC_OpenDevice_NET();
+                // 探测网络最佳包大小(只对GigE相机有效)
+                if (device.nTLayerType == MyCamera.MV_GIGE_DEVICE)
+                {
+                    int nPacketSize = cameraArr[i].MV_CC_GetOptimalPacketSize_NET();
+                    if (nPacketSize > 0)
+                    {
+                        cameraArr[i].MV_CC_SetIntValue_NET("GevSCPSPacketSize", (uint)nPacketSize);
+                    }
+                }
+                // 设置连续采集模式
+                cameraArr[i].MV_CC_SetEnumValue_NET("AcquisitionMode", (uint)MyCamera.MV_CAM_ACQUISITION_MODE.MV_ACQ_MODE_CONTINUOUS);
+                cameraArr[i].MV_CC_SetEnumValue_NET("TriggerMode", (uint)MyCamera.MV_CAM_TRIGGER_MODE.MV_TRIGGER_MODE_OFF);
+            }
+            return cameraArr;
+        }
+
         // 关闭相机对象
         public void DestroyCamera()
         {
@@ -121,18 +155,34 @@ namespace HIKDeviceSource
             }  
         }
 
+        public void MultiDestroyCamera()
+        {
+            for (int i = 0; i < cameraNum; i++)
+            {
+                if (cameraArr[i] != null)
+                {
+                    // 停止采集
+                    cameraArr[i].MV_CC_StopGrabbing_NET();
+                    // 关闭设备
+                    cameraArr[i].MV_CC_CloseDevice_NET();
+                    cameraArr[i].MV_CC_DestroyDevice_NET();
+                    cameraArr[i] = null;
+                }
+            }
+        }
+
         // 获取参数
-        public void GetParam(ref string gain, ref string exposure)
+        public void GetParam(ref string gain, ref string exposure, MyCamera cam)
         {
             MyCamera.MVCC_FLOATVALUE stParam = new MyCamera.MVCC_FLOATVALUE();
             // 获取曝光值
-            int nRet = camera.MV_CC_GetFloatValue_NET("Gain", ref stParam);
+            int nRet = cam.MV_CC_GetFloatValue_NET("Gain", ref stParam);
             if (MyCamera.MV_OK == nRet)
             {
                 gain = stParam.fCurValue.ToString("F0");
             }
             // 获取增益
-            nRet = camera.MV_CC_GetFloatValue_NET("ExposureTime", ref stParam);
+            nRet = cam.MV_CC_GetFloatValue_NET("ExposureTime", ref stParam);
             if (MyCamera.MV_OK == nRet)
             {
                 exposure = stParam.fCurValue.ToString("F0");
@@ -140,12 +190,12 @@ namespace HIKDeviceSource
         }
 
         // 设置参数
-        public void SetParam(float gain, float exposure, ref string gainString, ref string exposureString)
+        public void SetParam(float gain, float exposure, ref string gainString, ref string exposureString, MyCamera cam)
         {
             // 增益
             // 获取当前Gain、最大Gain、最小Gain
             MyCamera.MVCC_FLOATVALUE gainValue = new MyCamera.MVCC_FLOATVALUE();
-            camera.MV_CC_GetGain_NET(ref gainValue);
+            cam.MV_CC_GetGain_NET(ref gainValue);
             //float gain = gainValue.fCurValue;
             float maxGain = gainValue.fMax;
             float minGain = gainValue.fMin;
@@ -161,15 +211,15 @@ namespace HIKDeviceSource
                 gain = maxGain;
             }
             // 关闭自动设置
-            camera.MV_CC_SetEnumValue_NET("GainAuto", 0);
+            cam.MV_CC_SetEnumValue_NET("GainAuto", 0);
             // 设置Gain
-            camera.MV_CC_SetFloatValue_NET("Gain", gain);
+            cam.MV_CC_SetFloatValue_NET("Gain", gain);
             gainString = gain.ToString("F0");
 
             // 曝光时间
             // 获取当前Exposure、最大Exposure、最小Exposure
             MyCamera.MVCC_FLOATVALUE exposureValue = new MyCamera.MVCC_FLOATVALUE();
-            camera.MV_CC_GetExposureTime_NET(ref exposureValue);
+            cam.MV_CC_GetExposureTime_NET(ref exposureValue);
             //float exposure = exposureValue.fCurValue;
             float maxExposure = exposureValue.fMax;
             float minExposure = exposureValue.fMin;
@@ -186,9 +236,9 @@ namespace HIKDeviceSource
             }
 
             // 关闭自动设置
-            camera.MV_CC_SetEnumValue_NET("ExposureAuto", 0);
+            cam.MV_CC_SetEnumValue_NET("ExposureAuto", 0);
             // 设置ExposureTime
-            camera.MV_CC_SetFloatValue_NET("ExposureTime", exposure);
+            cam.MV_CC_SetFloatValue_NET("ExposureTime", exposure);
             exposureString = exposure.ToString("F0");
         }
 

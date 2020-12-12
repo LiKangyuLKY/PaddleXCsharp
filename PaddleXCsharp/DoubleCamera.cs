@@ -18,30 +18,26 @@ namespace PaddleXCsharp
     {
         private delegate void UpdateUI();  // 声明委托
         int cameraUsingNum;
-        
+       
+        ///* ================================= 海康相机 ================================= */
+        HIKVisionCamera hIKVisionCamera = new HIKVisionCamera();
+        MyCamera[] cameraArr1 = new MyCamera[2];
+        MyCamera.cbOutputExdelegate cbImage1;
+        MyCamera.cbOutputExdelegate cbImage2;
+        bool hikCanGrab = false;  // 控制相机是否Grab
+        bool chooseHIK = false;           // 海康相机打开标志
+
+        // 用于从驱动获取图像的缓存
+        UInt32 m_nBufSizeForDriver = 0;
+        //IntPtr m_BufForDriver;
+
         /* ================================= basler相机 ================================= */
         BaslerCamera baslerCamera = new BaslerCamera();
-        Camera[] cameraArr1 = new Camera[2];
+        Camera[] cameraArr2 = new Camera[2];
         List<ICameraInfo> allCameraInfos;
-        //Thread baslerGrabThread1 = null;
-        //private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
-
-        //bool baslerCanGrab = false;    // 控制相机是否Grab
-        //private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
         private PixelDataConverter converter = new PixelDataConverter(); // basler里用于将相机采集的图像转换成位图
         bool chooseBasler = false;     // Basler相机打开标志
 
-        ///* ================================= 海康相机 ================================= */
-        //HIKVisionCamera hIKVisionCamera = new HIKVisionCamera();
-        //MyCamera camera2 = null;
-        //Thread hikGrabThread = null;
-
-        //bool hikCanGrab = false;  // 控制相机是否Grab
-        bool chooseHIK = false;           // 海康相机打开标志
-
-        //// 用于从驱动获取图像的缓存
-        //UInt32 m_nBufSizeForDriver = 0;
-        //IntPtr m_BufForDriver;
 
         ///* ================================= inference ================================= */
         #region 接口定义及参数
@@ -107,17 +103,18 @@ namespace PaddleXCsharp
             // 枚举海康相机
             if ((chooseHIK) && (!chooseBasler))
             {
-                //try
-                //{
-                //    // 相机数量
-                //    uint cameraNum = hIKVisionCamera.CameraNum();
-                //    tbOnlineNum.Text = cameraNum.ToString();
-                //}
-                //catch
-                //{
-                //    MessageBox.Show("枚举设备失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //    return;
-                //}
+                try
+                {
+                    // 相机数量
+                    uint cameraNum = hIKVisionCamera.CameraNum();
+                    _ = hIKVisionCamera.EnumDevices();
+                    tbOnlineNum.Text = cameraNum.ToString();
+                }
+                catch
+                {
+                    MessageBox.Show("枚举设备失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
 
             //枚举basler相机
@@ -189,6 +186,7 @@ namespace PaddleXCsharp
         // 打开设备
         private void BnOpen_Click(object sender, EventArgs e)
         {
+            bool initFinished = false;
             try
             {
                 int.Parse(tbUseNum.Text);
@@ -219,16 +217,25 @@ namespace PaddleXCsharp
             }
             if ((chooseHIK) && (!chooseBasler))
             {
-                MessageBox.Show("test");
+                // 相机初始化
+                //cbImage1 = new MyCamera.cbOutputExdelegate(ImageCallBack);
+                //cbImage2 = new MyCamera.cbOutputExdelegate(ImageCallBack);
+                cameraArr1 = hIKVisionCamera.MultiCameraInit(cameraUsingNum);
+                initFinished = true;
+                
             }
             else if ((chooseBasler) && (!chooseHIK))
             {
                 // 相机初始化
-                cameraArr1 = baslerCamera.MultiCameraInit(cameraUsingNum);               
+                cameraArr2 = baslerCamera.MultiCameraInit(cameraUsingNum);
+                initFinished = true;
+            }
+            if(initFinished)
+            {
                 // 注册事件
                 RegisterGrabEvent();
                 // label颜色提示
-                for(int i = 0; i <cameraUsingNum; i++)
+                for (int i = 0; i < cameraUsingNum; i++)
                 {
                     Control[] ctrlArr = this.Controls.Find("lblCam" + (i + 1), true);
                     if (ctrlArr.Length > 0 && ctrlArr[0] is Label)
@@ -239,57 +246,80 @@ namespace PaddleXCsharp
                 }
                 // 控件操作
                 SetCtrlWhenOpen();
-            }  
+            }    
         }
+        private void RegisterGrabEvent()
+        {
+            if ((chooseHIK) && (!chooseBasler))
+            {
 
+                if (cameraArr1[0] != null)
+                {
+                    cbImage1 = new MyCamera.cbOutputExdelegate(ImageCallBack_1);
+                    cameraArr1[0].MV_CC_RegisterImageCallBackEx_NET(cbImage1, (IntPtr)0);
+                }
+
+                if (cameraArr1[1] != null)
+                {
+                    cbImage2 = new MyCamera.cbOutputExdelegate(ImageCallBack_2);
+                    cameraArr1[1].MV_CC_RegisterImageCallBackEx_NET(cbImage2, (IntPtr)0);
+                }
+            }
+            else if ((chooseBasler) && (!chooseHIK))
+            {
+                if (cameraArr2[0] != null && true == cameraArr2[0].IsOpen)
+                {
+                    cameraArr2[0].StreamGrabber.ImageGrabbed += OnImageGrabbed_1;
+                }
+
+                if (cameraArr2[1] != null && true == cameraArr2[1].IsOpen)
+                {
+                    cameraArr2[1].StreamGrabber.ImageGrabbed += OnImageGrabbed_2;
+                }
+            }
+        }
         //关闭设备
         private void BnClose_Click(object sender, EventArgs e)
         {
             if ((chooseHIK) && (!chooseBasler))
             {
-                MessageBox.Show("test");
+                hIKVisionCamera.MultiDestroyCamera();
             }
             else if ((chooseBasler) && (!chooseHIK))
             {
                 // 释放相机
-                baslerCamera.MultiDestroyCamera();
-                for (int i = 0; i < cameraUsingNum; i++)
-                {
-                    Control[] ctrlArr = this.Controls.Find("lblCam" + (i + 1), true);
-                    if (ctrlArr.Length > 0 && ctrlArr[0] is Label)
-                    {
-                        Label lbl = (Label)ctrlArr[0];
-                        lbl.BackColor = Color.Red;
-                    }
-                }
-                // 控件操作
-                SetCtrlWhenClose();
+                baslerCamera.MultiDestroyCamera();             
             }
+            for (int i = 0; i < cameraUsingNum; i++)
+            {
+                Control[] ctrlArr = this.Controls.Find("lblCam" + (i + 1), true);
+                if (ctrlArr.Length > 0 && ctrlArr[0] is Label)
+                {
+                    Label lbl = (Label)ctrlArr[0];
+                    lbl.BackColor = Color.Red;
+                }
+            }
+            // 控件操作
+            SetCtrlWhenClose();
         }
 
         private void BnStartGrab_Click(object sender, EventArgs e)
         {
             if ((chooseHIK) && (!chooseBasler))
             {
-                //try
-                //{
-                //    // 标志位置位true
-                //    hikCanGrab = true;
-                //    // 开始采集
-                //    hIKVisionCamera.StartGrabbing();
-                //    // 用线程更新显示
-                //    hikGrabThread = new Thread(GrabThreadProcess);
-                //    hikGrabThread.Start();
-                //    // 控件操作
-                //    SetCtrlWhenStartGrab();
-                //}
-                //catch
-                //{
-                //    hikCanGrab = false;
-                //    hikGrabThread.Join();
-                //    MessageBox.Show("开始采集失败！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //    return;
-                //}
+                // 开始Grab
+                if (rbCamera1.Checked)
+                {
+                    cameraArr1[0].MV_CC_StartGrabbing_NET();
+                    lblCam1.BackColor = Color.Green;
+                }
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
+                {
+                    cameraArr1[1].MV_CC_StartGrabbing_NET();
+                    lblCam2.BackColor = Color.Green;
+                }
+                // 控件操作
+                SetCtrlWhenStartGrab();
 
             }
             else if ((chooseBasler) && (!chooseHIK))
@@ -298,20 +328,20 @@ namespace PaddleXCsharp
                 if (rbCamera1.Checked)
                 {
                     // 连续采集模式
-                    if(false == cameraArr1[0].StreamGrabber.IsGrabbing)
+                    if(false == cameraArr2[0].StreamGrabber.IsGrabbing)
                     {
-                        cameraArr1[0].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
-                        cameraArr1[0].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
+                        cameraArr2[0].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
+                        cameraArr2[0].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
                         lblCam1.BackColor = Color.Green;
                     } 
                 }
 
                 else if (rbCamera2.Checked && cameraUsingNum > 1)
                 {
-                    if(false == cameraArr1[1].StreamGrabber.IsGrabbing)
+                    if(false == cameraArr2[1].StreamGrabber.IsGrabbing)
                     {
-                        cameraArr1[1].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
-                        cameraArr1[1].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
+                        cameraArr2[1].Parameters[PLCamera.AcquisitionMode].SetValue(PLCamera.AcquisitionMode.Continuous);
+                        cameraArr2[1].StreamGrabber.Start(GrabStrategy.OneByOne, GrabLoop.ProvidedByStreamGrabber);
                         lblCam2.BackColor = Color.Green;
                     }
                 }
@@ -325,80 +355,42 @@ namespace PaddleXCsharp
         {
             if ((chooseHIK) && (!chooseBasler))
             {
-
+                // 1号相机被选中
+                if (rbCamera1.Checked)
+                {
+                    cameraArr1[0].MV_CC_StopGrabbing_NET();
+                    lblCam1.BackColor = Color.Yellow;
+                }
+                // 2号相机被选中
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
+                {
+                    cameraArr1[1].MV_CC_StopGrabbing_NET();
+                    lblCam2.BackColor = Color.Yellow;
+                }
+                SetCtrlWhenStopGrab();
             }
             else if ((chooseBasler) && (!chooseHIK))
             { 
                 // 1号相机被选中
                 if (rbCamera1.Checked)
                 {
-                    cameraArr1[0].StreamGrabber.Stop();
+                    cameraArr2[0].StreamGrabber.Stop();
                     lblCam1.BackColor = Color.Yellow;
                 }
                 // 2号相机被选中
                 else if (rbCamera2.Checked && cameraUsingNum > 1)
                 {
-                    cameraArr1[1].StreamGrabber.Stop();
+                    cameraArr2[1].StreamGrabber.Stop();
                     lblCam2.BackColor = Color.Yellow;
                 }
                 SetCtrlWhenStopGrab();
             }
         }
 
-        private void RegisterGrabEvent()
-        {
-            if (cameraArr1[0] != null && true == cameraArr1[0].IsOpen)
-            {
-                cameraArr1[0].StreamGrabber.ImageGrabbed += OnImageGrabbed_1;
-            }
-
-            if (cameraArr1[1] != null && true == cameraArr1[1].IsOpen)
-            {
-                cameraArr1[1].StreamGrabber.ImageGrabbed += OnImageGrabbed_2;
-            }
-        }
-
-        //private void OnImageGrabbed(string camName, ImageGrabbedEventArgs e, PictureBox pic)
-        //{
-        //    try
-        //    {
-        //        IGrabResult grabResult = e.GrabResult;
-        //        if (grabResult.IsValid)
-        //        {
-        //            // 四通道RGBA
-        //            Bitmap bitmap = new Bitmap(grabResult.Width, grabResult.Height, PixelFormat.Format32bppRgb);
-        //            // 锁定位图的位
-        //            BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
-        //            // 将指针放置到位图的缓冲区
-        //            converter.OutputPixelFormat = PixelType.BGRA8packed;
-        //            IntPtr ptrBmp = bmpData.Scan0;
-        //            converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
-        //            bitmap.UnlockBits(bmpData);
-
-        //            if (isInference) { bitmap = Inference(bitmap); }
-        //            if (pic.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
-        //            {
-        //                UpdateUI update = delegate { pic.Image = bitmap; };
-        //                pic.BeginInvoke(update);
-        //            }
-        //            else { pic.Image = bitmap; }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show(string.Format("CAM:{0}！\n{1}", camName, ex.Message));
-        //    }
-        //    finally
-        //    {
-        //        e.DisposeGrabResultIfClone();
-        //    }
-        //}
-
         private void OnImageGrabbed_1(Object sender, ImageGrabbedEventArgs e)
         {
-            //OnImageGrabbed("CAM1", e, pictureBox1);
-            //try
-            //{
+            try
+            {
                 IGrabResult grabResult = e.GrabResult;
                 if (grabResult.IsValid)
                 {
@@ -420,21 +412,21 @@ namespace PaddleXCsharp
                     }
                     else { pictureBox1.Image = bitmap; }
                 }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM1", ex.Message));
-            //}
-            //finally
-            //{
-            //    e.DisposeGrabResultIfClone();
-            //}
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM1", ex.Message));
+            }
+            finally
+            {
+                e.DisposeGrabResultIfClone();
+            }
         }
+
         private void OnImageGrabbed_2(Object sender, ImageGrabbedEventArgs e)
         {
-            //OnImageGrabbed("CAM2", e, pictureBox2);
-            //try
-            //{
+            try
+            {
                 IGrabResult grabResult = e.GrabResult;
                 if (grabResult.IsValid)
                 {
@@ -456,17 +448,108 @@ namespace PaddleXCsharp
                     }
                     else { pictureBox2.Image = bitmap; }
                 }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM2", ex.Message));
-            //}
-            //finally
-            //{
-            //    e.DisposeGrabResultIfClone();
-            //}
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("CAM:{0}！\n{1}", "CAM2", ex.Message));
+            }
+            finally
+            {
+                e.DisposeGrabResultIfClone();
+            }
         }
 
+        private void ImageCallBack_1(IntPtr m_BufForDriver, ref MyCamera.MV_FRAME_OUT_INFO_EX pFrameInfo, IntPtr pUser)
+        {
+            MyCamera.MVCC_INTVALUE stParam = new MyCamera.MVCC_INTVALUE();
+            int nRet = cameraArr1[0].MV_CC_GetIntValue_NET("PayloadSize", ref stParam);
+            if (MyCamera.MV_OK != nRet)
+            {
+                MessageBox.Show("Get PayloadSize failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            UInt32 nPayloadSize = stParam.nCurValue;
+            if (nPayloadSize > m_nBufSizeForDriver)
+            {
+                if (m_BufForDriver != IntPtr.Zero)
+                {
+                    Marshal.Release(m_BufForDriver);
+                }
+                m_nBufSizeForDriver = nPayloadSize;
+                m_BufForDriver = Marshal.AllocHGlobal((Int32)m_nBufSizeForDriver);
+            }
+            if (m_BufForDriver == IntPtr.Zero)
+            {
+                MessageBox.Show("采集失败，请重新连接设备", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            // 将海康数据类型转为Mat
+            nRet = cameraArr1[0].MV_CC_GetOneFrameTimeout_NET(m_BufForDriver, nPayloadSize, ref pFrameInfo, 1000); // m_BufForDriver为图像数据接收指针
+            //pTemp = m_BufForDriver;
+            byte[] byteImage = new byte[pFrameInfo.nHeight * pFrameInfo.nWidth];
+            Marshal.Copy(m_BufForDriver, byteImage, 0, pFrameInfo.nHeight * pFrameInfo.nWidth);
+            Mat matImage = new Mat(pFrameInfo.nHeight, pFrameInfo.nWidth, MatType.CV_8UC1, byteImage);
+            // 单通道图像转为三通道
+            Mat matImageNew = new Mat();
+            Cv2.CvtColor(matImage, matImageNew, ColorConversionCodes.GRAY2RGB);
+            Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap
+                                                     // 是否进行推理
+            DeepLearning deepLearning = new DeepLearning();
+            if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }
+            if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+            {
+                UpdateUI update = delegate { pictureBox1.Image = bitmap; };
+                pictureBox1.BeginInvoke(update);
+            }
+            else { pictureBox1.Image = bitmap; }
+
+        }
+
+        private void ImageCallBack_2(IntPtr m_BufForDriver, ref MyCamera.MV_FRAME_OUT_INFO_EX pFrameInfo, IntPtr pUser)
+        {
+            MyCamera.MVCC_INTVALUE stParam = new MyCamera.MVCC_INTVALUE();
+            int nRet = cameraArr1[0].MV_CC_GetIntValue_NET("PayloadSize", ref stParam);
+            if (MyCamera.MV_OK != nRet)
+            {
+                MessageBox.Show("Get PayloadSize failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            UInt32 nPayloadSize = stParam.nCurValue;
+            if (nPayloadSize > m_nBufSizeForDriver)
+            {
+                if (m_BufForDriver != IntPtr.Zero)
+                {
+                    Marshal.Release(m_BufForDriver);
+                }
+                m_nBufSizeForDriver = nPayloadSize;
+                m_BufForDriver = Marshal.AllocHGlobal((Int32)m_nBufSizeForDriver);
+            }
+            if (m_BufForDriver == IntPtr.Zero)
+            {
+                MessageBox.Show("采集失败，请重新连接设备", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            // 将海康数据类型转为Mat
+            nRet = cameraArr1[0].MV_CC_GetOneFrameTimeout_NET(m_BufForDriver, nPayloadSize, ref pFrameInfo, 1000); // m_BufForDriver为图像数据接收指针
+            //pTemp = m_BufForDriver;
+            byte[] byteImage = new byte[pFrameInfo.nHeight * pFrameInfo.nWidth];
+            Marshal.Copy(m_BufForDriver, byteImage, 0, pFrameInfo.nHeight * pFrameInfo.nWidth);
+            Mat matImage = new Mat(pFrameInfo.nHeight, pFrameInfo.nWidth, MatType.CV_8UC1, byteImage);
+            // 单通道图像转为三通道
+            Mat matImageNew = new Mat();
+            Cv2.CvtColor(matImage, matImageNew, ColorConversionCodes.GRAY2RGB);
+            Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap
+                                                     // 是否进行推理
+            DeepLearning deepLearning = new DeepLearning();
+            if (isInference2) { bitmap = deepLearning.Inference(model2, bitmap); }
+            if (pictureBox2.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+            {
+                UpdateUI update = delegate { pictureBox2.Image = bitmap; };
+                pictureBox2.BeginInvoke(update);
+            }
+            else { pictureBox2.Image = bitmap; }
+
+        }
         // 获取参数
         private void BnGetParam_Click(object sender, EventArgs e)
         {
@@ -475,19 +558,24 @@ namespace PaddleXCsharp
             string exposure = null;
             if ((chooseHIK) && (!chooseBasler))
             {
-                //// 获取参数
-                //hIKVisionCamera.GetParam(ref gain, ref exposure);
-                //tbGain.Text = gain;
-                //tbExposure.Text = exposure;
+                if (rbCamera1.Checked)
+                    // 获取参数
+                    hIKVisionCamera.GetParam(ref gain, ref exposure, cameraArr1[0]);
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
+                    // 获取参数
+                    hIKVisionCamera.GetParam(ref gain, ref exposure, cameraArr1[1]);
+                // 显示
+                tbGain.Text = gain;
+                tbExposure.Text = exposure;
             }
             else if ((chooseBasler) && (!chooseHIK))
             {
                 if(rbCamera1.Checked)
                     // 获取参数
-                    baslerCamera.GetParam(ref gain, ref exposure, cameraArr1[0]);
+                    baslerCamera.GetParam(ref gain, ref exposure, cameraArr2[0]);
                 else if(rbCamera2.Checked && cameraUsingNum > 1)
                     // 获取参数
-                    baslerCamera.GetParam(ref gain, ref exposure, cameraArr1[1]);
+                    baslerCamera.GetParam(ref gain, ref exposure, cameraArr2[1]);
                 // 显示
                 tbGain.Text = gain;
                 tbExposure.Text = exposure;
@@ -501,12 +589,15 @@ namespace PaddleXCsharp
             string exposureshow = null;
             if ((chooseHIK) && (!chooseBasler))
             {
-                //float exposure = float.Parse(tbExposure.Text);
-                //float gain = float.Parse(tbGain.Text);
-                //hIKVisionCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow);
-                //// 显示真实值
-                //tbGain.Text = gainshow;
-                //tbExposure.Text = exposureshow;
+                float exposure = float.Parse(tbExposure.Text);
+                float gain = float.Parse(tbGain.Text);
+                if (rbCamera1.Checked)
+                    hIKVisionCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[0]);
+                else if (rbCamera2.Checked && cameraUsingNum > 1)
+                    hIKVisionCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[1]);
+                // 显示真实值
+                tbGain.Text = gainshow;
+                tbExposure.Text = exposureshow;
             }
             else if ((chooseBasler) && (!chooseHIK))
             {
@@ -515,9 +606,9 @@ namespace PaddleXCsharp
                     long exposure = long.Parse(tbExposure.Text);
                     long gain = long.Parse(tbGain.Text);
                     if (rbCamera1.Checked)
-                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[0]);
+                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr2[0]);
                     else if (rbCamera2.Checked && cameraUsingNum > 1)
-                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr1[1]);
+                        baslerCamera.SetParam(gain, exposure, ref gainshow, ref exposureshow, cameraArr2[1]);
                 }
                 catch
                 {
