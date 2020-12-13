@@ -171,6 +171,7 @@ namespace PaddleXCsharp
             bnStartDetection.Enabled = true;
             bnStopDetection.Enabled = false;
             bnSaveImage.Enabled = true;
+
         }
         private void SetCtrlWhenStopGrab()
         {
@@ -660,7 +661,7 @@ namespace PaddleXCsharp
                 }
                 bnStartDetection.Enabled = true;
                 bnStopDetection.Enabled = true;
-                bnSaveImage.Enabled = true;
+                bnThreshold.Enabled = true;
             }
         }
 
@@ -704,6 +705,32 @@ namespace PaddleXCsharp
             {
                 isInference2 = false;
                 lblCam2.BackColor = Color.Green;
+            }
+        }
+
+        private void BnThreshold_Click(object sender, EventArgs e)
+        {
+            if (rbCamera1.Checked)
+            {
+                OpenFileDialog fileDialog = new OpenFileDialog();
+                fileDialog.Title = "请选择文件";
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string path = fileDialog.FileName;
+                    System.Diagnostics.Process.Start(path);
+                    MessageBox.Show("调整阈值后，请重新加载模型！", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else if (rbCamera2.Checked)
+            {
+                OpenFileDialog fileDialog = new OpenFileDialog();
+                fileDialog.Title = "请选择文件";
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string path = fileDialog.FileName;
+                    System.Diagnostics.Process.Start(path);
+                    MessageBox.Show("调整阈值后，请重新加载模型！", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 

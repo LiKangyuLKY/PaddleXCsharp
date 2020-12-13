@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using System.Diagnostics;
+using System.IO;
 
 namespace PaddleXCsharp
 {
@@ -206,6 +206,7 @@ namespace PaddleXCsharp
             bnStartDetection.Enabled = false;
             bnStopDetection.Enabled = false;
             bnSaveImage.Enabled = false;
+            bnThreshold.Enabled = false;
         }
         #endregion
 
@@ -551,7 +552,7 @@ namespace PaddleXCsharp
 
                 bnStartDetection.Enabled = true;
                 bnStopDetection.Enabled = true;
-                bnSaveImage.Enabled = true;
+                bnThreshold.Enabled = true;
             }
         }
 
@@ -626,6 +627,13 @@ namespace PaddleXCsharp
             bnStopDetection.Enabled = false;
             bnStartDetection.Enabled = true;
             isInference = false;
+        }
+
+        private void BnThreshold_Click(object sender, EventArgs e)
+        {
+            string path = modelPath + "/score_thresholds.yml";
+            System.Diagnostics.Process.Start(path);
+            MessageBox.Show("调整阈值后，请重新加载模型！", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         // 保存图片

@@ -61,6 +61,7 @@
             this.bnStartDetection = new System.Windows.Forms.Button();
             this.bnSaveImage = new System.Windows.Forms.Button();
             this.bnStopDetection = new System.Windows.Forms.Button();
+            this.bnThreshold = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -374,6 +375,7 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.bnThreshold);
             this.groupBox5.Controls.Add(this.tbModeltype);
             this.groupBox5.Controls.Add(this.bnLoadModel);
             this.groupBox5.Controls.Add(this.bnStartDetection);
@@ -424,7 +426,7 @@
             // bnSaveImage
             // 
             this.bnSaveImage.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnSaveImage.Location = new System.Drawing.Point(134, 78);
+            this.bnSaveImage.Location = new System.Drawing.Point(134, 128);
             this.bnSaveImage.Name = "bnSaveImage";
             this.bnSaveImage.Size = new System.Drawing.Size(100, 25);
             this.bnSaveImage.TabIndex = 16;
@@ -436,13 +438,25 @@
             // 
             this.bnStopDetection.Enabled = false;
             this.bnStopDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnStopDetection.Location = new System.Drawing.Point(18, 127);
+            this.bnStopDetection.Location = new System.Drawing.Point(134, 79);
             this.bnStopDetection.Name = "bnStopDetection";
             this.bnStopDetection.Size = new System.Drawing.Size(100, 25);
             this.bnStopDetection.TabIndex = 15;
             this.bnStopDetection.Text = "停止检测";
             this.bnStopDetection.UseVisualStyleBackColor = true;
             this.bnStopDetection.Click += new System.EventHandler(this.BnStopDetection_Click);
+            // 
+            // bnThreshold
+            // 
+            this.bnThreshold.Enabled = false;
+            this.bnThreshold.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.bnThreshold.Location = new System.Drawing.Point(18, 128);
+            this.bnThreshold.Name = "bnThreshold";
+            this.bnThreshold.Size = new System.Drawing.Size(100, 25);
+            this.bnThreshold.TabIndex = 43;
+            this.bnThreshold.Text = "阈值调整";
+            this.bnThreshold.UseVisualStyleBackColor = true;
+            this.bnThreshold.Click += new System.EventHandler(this.BnThreshold_Click);
             // 
             // DoubleCamera
             // 
@@ -506,5 +520,6 @@
         private System.Windows.Forms.Button bnStopDetection;
         private System.Windows.Forms.Label lblCam2;
         private System.Windows.Forms.Label lblCam1;
+        private System.Windows.Forms.Button bnThreshold;
     }
 }

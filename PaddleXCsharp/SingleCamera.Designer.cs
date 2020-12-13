@@ -53,6 +53,7 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.bnEnum = new System.Windows.Forms.Button();
             this.bnOpen = new System.Windows.Forms.Button();
+            this.bnThreshold = new System.Windows.Forms.Button();
             this.groupBox5.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -63,6 +64,7 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.bnThreshold);
             this.groupBox5.Controls.Add(this.tbModeltype);
             this.groupBox5.Controls.Add(this.bnLoadModel);
             this.groupBox5.Controls.Add(this.bnStartDetection);
@@ -102,7 +104,7 @@
             // 
             this.bnStartDetection.Enabled = false;
             this.bnStartDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnStartDetection.Location = new System.Drawing.Point(15, 78);
+            this.bnStartDetection.Location = new System.Drawing.Point(15, 92);
             this.bnStartDetection.Name = "bnStartDetection";
             this.bnStartDetection.Size = new System.Drawing.Size(100, 25);
             this.bnStartDetection.TabIndex = 14;
@@ -112,8 +114,9 @@
             // 
             // bnSaveImage
             // 
+            this.bnSaveImage.Enabled = false;
             this.bnSaveImage.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnSaveImage.Location = new System.Drawing.Point(15, 120);
+            this.bnSaveImage.Location = new System.Drawing.Point(131, 148);
             this.bnSaveImage.Name = "bnSaveImage";
             this.bnSaveImage.Size = new System.Drawing.Size(100, 25);
             this.bnSaveImage.TabIndex = 16;
@@ -125,7 +128,7 @@
             // 
             this.bnStopDetection.Enabled = false;
             this.bnStopDetection.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnStopDetection.Location = new System.Drawing.Point(131, 78);
+            this.bnStopDetection.Location = new System.Drawing.Point(131, 91);
             this.bnStopDetection.Name = "bnStopDetection";
             this.bnStopDetection.Size = new System.Drawing.Size(100, 25);
             this.bnStopDetection.TabIndex = 15;
@@ -340,6 +343,18 @@
             this.bnOpen.UseVisualStyleBackColor = true;
             this.bnOpen.Click += new System.EventHandler(this.BnOpen_Click);
             // 
+            // bnThreshold
+            // 
+            this.bnThreshold.Enabled = false;
+            this.bnThreshold.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.bnThreshold.Location = new System.Drawing.Point(15, 148);
+            this.bnThreshold.Name = "bnThreshold";
+            this.bnThreshold.Size = new System.Drawing.Size(100, 25);
+            this.bnThreshold.TabIndex = 42;
+            this.bnThreshold.Text = "阈值调整";
+            this.bnThreshold.UseVisualStyleBackColor = true;
+            this.bnThreshold.Click += new System.EventHandler(this.BnThreshold_Click);
+            // 
             // SingleCamera
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -394,5 +409,6 @@
         private System.Windows.Forms.Button bnEnum;
         private System.Windows.Forms.Button bnOpen;
         private System.Windows.Forms.TextBox tbModeltype;
+        private System.Windows.Forms.Button bnThreshold;
     }
 }
