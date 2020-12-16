@@ -1,0 +1,87 @@
+//服务、函数接口、数据结构的定义
+syntax = 'proto3';
+package example;
+
+//服务、函数接口
+service PaddleXserver {
+  rpc paddlex_init(paddlex_init_cmd) returns (paddlex_init_result){}  //初始化加载模型接口
+  rpc paddlex_predict_cls(image) returns (cls_inputs_result){}  //分类模型调用接口
+  rpc paddlex_predict_det(image) returns (det_inputs_result){}     //目标检测接口
+  rpc paddlex_predict_det_seg(image) returns (det_seg_inputs_result){}      //实例分割接口
+  rpc paddlex_predict_seg(image) returns (seg_inputs_result){}    //语义分割接口
+}
+
+//数据结构
+
+//图片
+message image {
+  string _image = 1;
+}
+
+//加载模型req
+message paddlex_init_cmd {
+  string model_dir = 1;       //模型目录
+  bool use_gpu =2;       //是否使用gpu
+  string gpu_id =3;    //gpu_id
+}
+//加载模型rep
+message paddlex_init_result {
+  string init_result = 1; //加载模型结果
+}
+
+//分类结果传出
+message cls_inputs_result {
+  int32 category_id = 1;
+  string category = 2;
+  float score = 3;
+}
+
+
+//目标检测,实例分割结果输出
+message det_inputs_result {
+  repeated box boxes = 1;
+}
+//目标box
+message box {
+  int32 category_id = 1; //类别id
+  coordinate bbox = 2;  //4个元素值，表示xmin, ymin, width, height
+  float score = 3; //置信度
+  string category = 4; //类别
+}
+//boxes - coordinate
+message coordinate {
+  float xmin = 1; 
+  float ymin = 2;
+  float width = 3;
+  float height = 4;
+}
+
+
+// 实例分割
+
+message det_seg_inputs_result {
+  //string det_img = 1;
+  repeated box_seg boxes_seg = 1;
+}
+//目标box
+message box_seg {
+  int32 category_id = 1; //类别id
+  coordinate bbox = 2;  //同上面的
+  float score = 3; //置信度
+  string _mask = 4;   //分割结果的mask
+  string category = 5; //类别
+}
+
+//语义分割,只有两值
+message seg_inputs_result {
+  string label_map = 1;
+  repeated score_map _score_map = 2;    //个数等于num_class
+  float set_threshold = 3;    //配置文件设置的阀值
+}
+
+message score_map{
+  string value = 1;
+}
+
+
+//编译命令 python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I. PaddleXserver.proto
