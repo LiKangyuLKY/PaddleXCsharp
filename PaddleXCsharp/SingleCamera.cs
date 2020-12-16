@@ -51,13 +51,21 @@ namespace PaddleXCsharp
         int gpuID = 0; // 使用GPU的ID号
         string key = ""; //模型解密密钥，此参数用于加载加密的PaddleX模型时使用
         bool useIrOptim = false; // 是否加速模型后进行图优化
-
+        bool visualize = true;
         bool isInference = false;  // 是否进行推理   
         IntPtr model; // 模型
 
         // 定义CreatePaddlexModel接口
         [DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
-        static extern IntPtr CreatePaddlexModel(ref int modelType, string modelPath, bool useGPU, bool useTrt, bool useMkl, int mklThreadNum, int gpuID, string key, bool useIrOptim);
+        static extern IntPtr CreatePaddlexModel(ref int modelType, 
+                                                string modelPath, 
+                                                bool useGPU, 
+                                                bool useTrt, 
+                                                bool useMkl, 
+                                                int mklThreadNum, 
+                                                int gpuID, 
+                                                string key, 
+                                                bool useIrOptim);
 
         // 定义PaddlexDetPredict接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -540,8 +548,6 @@ namespace PaddleXCsharp
                 modelPath = fileDialog.SelectedPath;
                 MessageBox.Show("已选择模型路径:" + modelPath, "选择文件提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                
-                IntPtr a = new IntPtr(modelType);
                 model = CreatePaddlexModel(ref modelType, modelPath, useGPU, useTrt, useMkl, mklThreadNum, gpuID, key, useIrOptim);
                 switch (modelType)
                 {
