@@ -16,6 +16,11 @@
   * 通过gRPC方式，调用远程服务器
   
 ## 单相机模式界面
-目标检测
+相机操作及推理
+![Alt text](https://github.com/LiKangyuLKY/PaddleXCsharp/blob/master/images/%E5%8D%95%E7%9B%B8%E6%9C%BA-%E7%9B%B8%E6%9C%BA%E6%93%8D%E4%BD%9C.gif)
+![Alt text](https://github.com/LiKangyuLKY/PaddleXCsharp/blob/master/images/%E5%8D%95%E7%9B%B8%E6%9C%BA-%E6%8E%A8%E7%90%86.gif)
 
-![Alt text](https://github.com/LiKangyuLKY/PaddleXCsharp/blob/master/images/%E5%8D%95%E7%9B%B8%E6%9C%BA%E6%A3%80%E6%B5%8B%E7%95%8C%E9%9D%A2.png)
+## 多相机模式界面
+相机操作及推理
+![Alt text](https://github.com/LiKangyuLKY/PaddleXCsharp/blob/master/images/%E5%A4%9A%E7%9B%B8%E6%9C%BA-%E7%9B%B8%E6%9C%BA%E6%93%8D%E4%BD%9C.gif)
+![Alt text](https://github.com/LiKangyuLKY/PaddleXCsharp/blob/master/images/%E5%A4%9A%E7%9B%B8%E6%9C%BA-%E6%8E%A8%E7%90%86.gif)
