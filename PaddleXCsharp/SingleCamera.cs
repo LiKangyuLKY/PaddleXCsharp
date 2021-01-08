@@ -55,6 +55,9 @@ namespace PaddleXCsharp
         bool isInference = false;  // 是否进行推理   
         IntPtr model; // 模型
 
+        // 目标物种类，需根据实际情况修改！
+        string[] category = { "meter" };
+
         // 定义CreatePaddlexModel接口
         [DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
         static extern IntPtr CreatePaddlexModel(ref int modelType, 
@@ -67,10 +70,18 @@ namespace PaddleXCsharp
                                                 string key, 
                                                 bool useIrOptim);
 
-        // 定义PaddlexDetPredict接口
+        // 定义分类接口
+        [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexClsPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        static extern bool PaddlexClsPredict(IntPtr model, byte[] image, int height, int width, int channels, string result);
+
+        // 定义检测接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         static extern bool PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, int max_box, float[] result, bool visualize);
         #endregion
+
+        //// 定义语义分割接口
+        //[DllImport("paddlex_inference.dll", EntryPoint = "PaddlexSegPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        //static extern bool PaddlexSegPredict(IntPtr model, byte[] image, int height, int width, int channels, );
 
         public SingleCamera()
         {
@@ -603,6 +614,8 @@ namespace PaddleXCsharp
                 {
                     Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
                     Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
+                    string text = category[(int)result[6 * i + 1]] +": " + result[6 * i + 2].ToString("f2");
+                    Cv2.PutText(img, text, new OpenCvSharp.Point((int)result[6 * i + 3], (int)result[6 * i + 4] + 25), HersheyFonts.HersheyPlain, 2, Scalar.White);
                 }
             }
 
