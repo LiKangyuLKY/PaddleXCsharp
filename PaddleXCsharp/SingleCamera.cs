@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using System.IO;
+
 
 namespace PaddleXCsharp
 {
@@ -47,11 +47,11 @@ namespace PaddleXCsharp
         bool useGPU = false;  // 是否使用GPU
         bool useTrt = false;  // 是否使用TensorRT
         bool useMkl = true;  // 是否使用MKLDNN加速模型在CPU上的预测性能
-        int mklThreadNum = 16; // 使用MKLDNN时，线程数量
+        int mklThreadNum = 8; // 使用MKLDNN时，线程数量
         int gpuID = 0; // 使用GPU的ID号
         string key = ""; //模型解密密钥，此参数用于加载加密的PaddleX模型时使用
         bool useIrOptim = false; // 是否加速模型后进行图优化
-        bool visualize = true;
+        bool visualize = false;
         bool isInference = false;  // 是否进行推理   
         IntPtr model; // 模型
 
@@ -69,7 +69,7 @@ namespace PaddleXCsharp
 
         // 定义PaddlexDetPredict接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern IntPtr PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, IntPtr[] result);
+        static extern bool PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, int max_box, float[] result, bool visualize);
         #endregion
 
         public SingleCamera()
@@ -535,7 +535,6 @@ namespace PaddleXCsharp
         // 加载模型
         private void BnLoadModel_Click(object sender, EventArgs e)
         {
-
             FolderBrowserDialog fileDialog = new FolderBrowserDialog();
             fileDialog.Description = "请选择模型路径";
             fileDialog.ShowNewFolderButton = false;
@@ -584,38 +583,30 @@ namespace PaddleXCsharp
 
         // 推理
         private Bitmap Inference(Bitmap bmp)
-        {           
-            int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
-
-            byte[] source = GetbyteData(bmp);
-            IntPtr[] result = new IntPtr[100];
-            //IntPtr result = Marshal.AllocHGlobal(28); // 结构体在使用时一定要分配空间(7*sizeof(float))
-            IntPtr resultImage = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, result);
-            //Marshal.WriteInt32(result, 28); // 向内存块里写入数值
-            //Console.WriteLine("--box_num:{0}", Marshal.ReadInt32(result, 0));
-            //Console.WriteLine("--category_id:{0}", Marshal.ReadInt32(result, 4));
-            //Console.WriteLine("--score:{0}", Marshal.ReadInt32(result, 8)); //移动4个字节
-            //Console.WriteLine("--coordinate1: " + Marshal.ReadInt32(result, 12));
-            //Console.WriteLine("--coordinate2: " + Marshal.ReadInt32(result, 16));
-            //Console.WriteLine("--coordinate3: " + Marshal.ReadInt32(result, 20));
-            //Console.WriteLine("--coordinate4: " + Marshal.ReadInt32(result, 24));
+        {
+            Bitmap bmpNew = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
+            Console.WriteLine(bmpNew.PixelFormat);
             Bitmap resultShow;
-            Mat img = new Mat(resultImage);
-            switch (channel)
+            Mat img = BitmapConverter.ToMat(bmpNew);
+
+            int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+            int max_box = 10;
+            byte[] source = GetbyteData(bmp);
+
+            float[] result = new float[max_box * 6 + 1];
+
+            bool res = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, max_box, result, visualize);
+            if (res)
             {
-                case 1:
-                    resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format8bppIndexed, img.Data);
-                    break;
-                case 2:
-                    resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format16bppGrayScale, img.Data);
-                    break;
-                case 3:
-                    resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format24bppRgb, img.Data);
-                    break;
-                default:
-                    resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format32bppArgb, img.Data);
-                    break;
+                Scalar color = new Scalar(255, 0, 0);
+                for (int i = 0; i < result[0]; i++)
+                {
+                    Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
+                    Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
+                }
             }
+
+            resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format24bppRgb, img.Data);
             System.GC.Collect();
             return resultShow;
         }

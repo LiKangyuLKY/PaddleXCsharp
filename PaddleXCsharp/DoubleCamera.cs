@@ -8,7 +8,6 @@ using Basler.Pylon; // Basler 相机
 using BaslerDeviceSource; // Basler
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
@@ -493,10 +492,9 @@ namespace PaddleXCsharp
             // 单通道图像转为三通道
             Mat matImageNew = new Mat();
             Cv2.CvtColor(matImage, matImageNew, ColorConversionCodes.GRAY2RGB);
-            Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap
-                                                     // 是否进行推理
+            Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap                             
             DeepLearning deepLearning = new DeepLearning();
-            if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }
+            if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }// 是否进行推理
             if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
             {
                 UpdateUI update = delegate { pictureBox1.Image = bitmap; };
