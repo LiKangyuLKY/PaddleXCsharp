@@ -70,7 +70,7 @@ namespace PaddleXCsharp
 
         // 定义分类接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexClsPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern bool PaddlexClsPredict(IntPtr model, byte[] image, int height, int width, int channels, string result);
+        static extern bool PaddlexClsPredict(IntPtr model, byte[] image, int height, int width, int channels, out int categoryID, out float score);
 
         // 定义检测接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -186,7 +186,7 @@ namespace PaddleXCsharp
             //bnStopGrab.Enabled = true;
             bnLoadModel.Enabled = true;
             bnStartDetection.Enabled = true;
-            bnStopDetection.Enabled = false;
+            //bnStopDetection.Enabled = false;
             bnSaveImage.Enabled = true;
 
         }
@@ -422,7 +422,7 @@ namespace PaddleXCsharp
                     converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
                     bitmap.UnlockBits(bmpData);
                     DeepLearning deepLearning = new DeepLearning();
-                    if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }
+                    if (isInference1) { bitmap = deepLearning.Inference(model1,modelType, bitmap); }
                     if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
                     {
                         UpdateUI update = delegate { pictureBox1.Image = bitmap; };
@@ -458,7 +458,7 @@ namespace PaddleXCsharp
                     converter.Convert(ptrBmp, bmpData.Stride * bitmap.Height, grabResult);
                     bitmap.UnlockBits(bmpData);
                     DeepLearning deepLearning = new DeepLearning();
-                    if (isInference2) { bitmap = deepLearning.Inference(model2, bitmap); }
+                    if (isInference2) { bitmap = deepLearning.Inference(model2, modelType, bitmap); }
                     if (pictureBox2.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
                     {
                         UpdateUI update = delegate { pictureBox2.Image = bitmap; };
@@ -512,7 +512,7 @@ namespace PaddleXCsharp
             Cv2.CvtColor(matImage, matImageNew, ColorConversionCodes.GRAY2RGB);
             Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap                             
             DeepLearning deepLearning = new DeepLearning();
-            if (isInference1) { bitmap = deepLearning.Inference(model1, bitmap); }// 是否进行推理
+            if (isInference1) { bitmap = deepLearning.Inference(model1, modelType, bitmap); }// 是否进行推理
             if (pictureBox1.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
             {
                 UpdateUI update = delegate { pictureBox1.Image = bitmap; };
@@ -558,7 +558,7 @@ namespace PaddleXCsharp
             Bitmap bitmap = matImageNew.ToBitmap();  // Mat转为Bitmap
                                                      // 是否进行推理
             DeepLearning deepLearning = new DeepLearning();
-            if (isInference2) { bitmap = deepLearning.Inference(model2, bitmap); }
+            if (isInference2) { bitmap = deepLearning.Inference(model2, modelType, bitmap); }
             if (pictureBox2.InvokeRequired)  // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
             {
                 UpdateUI update = delegate { pictureBox2.Image = bitmap; };
@@ -763,8 +763,11 @@ namespace PaddleXCsharp
 
         class DeepLearning
         {
+            bool visualize = false;  
+            // 目标物种类，需根据实际情况修改！
+            string[] category = { "bocai", "changqiezi", "hongxiancai", "huluobo", "xihongshi", "xilanhua" };
             // 推理
-            public Bitmap Inference(IntPtr model, Bitmap bmp)
+            public Bitmap Inference(IntPtr model, int modelType, Bitmap bmp)
             {
                 Bitmap bmpNew = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
                 Console.WriteLine(bmpNew.PixelFormat);
@@ -772,21 +775,36 @@ namespace PaddleXCsharp
                 Mat img = BitmapConverter.ToMat(bmpNew);
 
                 int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
-                int max_box = 10;
                 byte[] source = GetbyteData(bmp);
 
-                float[] result = new float[max_box * 6 + 1];
-
-                bool res = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, max_box, result, false);
-                if (res)
+                if (modelType == 0)
                 {
-                    Scalar color = new Scalar(255, 0, 0);
-                    for (int i = 0; i < result[0]; i++)
+                    bool res = PaddlexClsPredict(model, source, bmp.Height, bmp.Width, channel, out int categoryID, out float score);
+                    if (res)
                     {
-                        Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
-                        Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
-                        string text = result[6 * i + 1].ToString() + ": " + result[6 * i + 2].ToString("f2");
-                        Cv2.PutText(img, text, new OpenCvSharp.Point((int)result[6 * i + 3], (int)result[6 * i + 4] + 25), HersheyFonts.HersheyPlain, 2, Scalar.White);
+                        Scalar color = new Scalar(0, 0, 255);
+                        string text = category[categoryID] + ": " + score.ToString("f2");
+                        OpenCvSharp.Size labelSize = Cv2.GetTextSize(text, HersheyFonts.HersheySimplex, 1, 1, out int baseline);
+                        Cv2.Rectangle(img, new OpenCvSharp.Point(0, 0), new OpenCvSharp.Point(labelSize.Width + 60, labelSize.Height + 20), color, -1, LineTypes.AntiAlias, 0);
+                        Cv2.PutText(img, text, new OpenCvSharp.Point(30, 30), HersheyFonts.HersheySimplex, 1, Scalar.White);
+                    }
+                }
+
+                else if (modelType == 1)
+                {
+                    int max_box = 10;
+                    float[] result = new float[max_box * 6 + 1];
+                    bool res = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, max_box, result, visualize);
+                    if (res)
+                    {
+                        Scalar color = new Scalar(255, 0, 0);
+                        for (int i = 0; i < result[0]; i++)
+                        {
+                            Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
+                            Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
+                            string text = category[(int)result[6 * i + 1]] + ": " + result[6 * i + 2].ToString("f2");
+                            Cv2.PutText(img, text, new OpenCvSharp.Point((int)result[6 * i + 3], (int)result[6 * i + 4] + 25), HersheyFonts.HersheyPlain, 2, Scalar.White);
+                        }
                     }
                 }
 

@@ -56,7 +56,7 @@ namespace PaddleXCsharp
         IntPtr model; // 模型
 
         // 目标物种类，需根据实际情况修改！
-        string[] category = { "meter" };
+        string[] category = { "bocai", "changqiezi", "hongxiancai", "huluobo", "xihongshi", "xilanhua"};
 
         // 定义CreatePaddlexModel接口
         [DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
@@ -72,7 +72,7 @@ namespace PaddleXCsharp
 
         // 定义分类接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexClsPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern bool PaddlexClsPredict(IntPtr model, byte[] image, int height, int width, int channels, string result);
+        static extern bool PaddlexClsPredict(IntPtr model, byte[] image, int height, int width, int channels, out int categoryID, out float score);
 
         // 定义检测接口
         [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexDetPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -596,26 +596,39 @@ namespace PaddleXCsharp
         private Bitmap Inference(Bitmap bmp)
         {
             Bitmap bmpNew = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
-            Console.WriteLine(bmpNew.PixelFormat);
             Bitmap resultShow;
             Mat img = BitmapConverter.ToMat(bmpNew);
 
             int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
-            int max_box = 10;
             byte[] source = GetbyteData(bmp);
 
-            float[] result = new float[max_box * 6 + 1];
-
-            bool res = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, max_box, result, visualize);
-            if (res)
+            if(modelType == 0)
             {
-                Scalar color = new Scalar(255, 0, 0);
-                for (int i = 0; i < result[0]; i++)
+                bool res = PaddlexClsPredict(model, source, bmp.Height, bmp.Width, channel, out int categoryID, out float score);
+                if(res)
                 {
-                    Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
-                    Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
-                    string text = category[(int)result[6 * i + 1]] +": " + result[6 * i + 2].ToString("f2");
-                    Cv2.PutText(img, text, new OpenCvSharp.Point((int)result[6 * i + 3], (int)result[6 * i + 4] + 25), HersheyFonts.HersheyPlain, 2, Scalar.White);
+                    Scalar color = new Scalar(0, 0, 255); 
+                    string text = category[categoryID] + ": " + score.ToString("f2");
+                    OpenCvSharp.Size labelSize = Cv2.GetTextSize(text, HersheyFonts.HersheySimplex, 1, 1, out int baseline);
+                    Cv2.Rectangle(img, new OpenCvSharp.Point(0, 0), new OpenCvSharp.Point(labelSize.Width + 60, labelSize.Height + 20), color, -1, LineTypes.AntiAlias, 0);
+                    Cv2.PutText(img, text, new OpenCvSharp.Point(30, 30), HersheyFonts.HersheySimplex, 1, Scalar.White);
+                }
+            }
+            else if(modelType == 1)
+            {
+                int max_box = 10;
+                float[] result = new float[max_box * 6 + 1];
+                bool res = PaddlexDetPredict(model, source, bmp.Height, bmp.Width, channel, max_box, result, visualize);
+                if (res)
+                {
+                    Scalar color = new Scalar(255, 0, 0);
+                    for (int i = 0; i < result[0]; i++)
+                    {
+                        Rect rect = new Rect((int)result[6 * i + 3], (int)result[6 * i + 4], (int)result[6 * i + 5], (int)result[6 * i + 6]);
+                        Cv2.Rectangle(img, rect, color, 2, LineTypes.AntiAlias);
+                        string text = category[(int)result[6 * i + 1]] + ": " + result[6 * i + 2].ToString("f2");
+                        Cv2.PutText(img, text, new OpenCvSharp.Point((int)result[6 * i + 3], (int)result[6 * i + 4] + 25), HersheyFonts.HersheyPlain, 2, Scalar.White);
+                    }
                 }
             }
 

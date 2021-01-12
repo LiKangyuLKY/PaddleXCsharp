@@ -56,12 +56,12 @@
             this.label4 = new System.Windows.Forms.Label();
             this.tbExposure = new System.Windows.Forms.TextBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.bnThreshold = new System.Windows.Forms.Button();
             this.tbModeltype = new System.Windows.Forms.TextBox();
             this.bnLoadModel = new System.Windows.Forms.Button();
             this.bnStartDetection = new System.Windows.Forms.Button();
             this.bnSaveImage = new System.Windows.Forms.Button();
             this.bnStopDetection = new System.Windows.Forms.Button();
-            this.bnThreshold = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -389,6 +389,18 @@
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "检测操作";
             // 
+            // bnThreshold
+            // 
+            this.bnThreshold.Enabled = false;
+            this.bnThreshold.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.bnThreshold.Location = new System.Drawing.Point(18, 128);
+            this.bnThreshold.Name = "bnThreshold";
+            this.bnThreshold.Size = new System.Drawing.Size(100, 25);
+            this.bnThreshold.TabIndex = 43;
+            this.bnThreshold.Text = "阈值调整";
+            this.bnThreshold.UseVisualStyleBackColor = true;
+            this.bnThreshold.Click += new System.EventHandler(this.BnThreshold_Click);
+            // 
             // tbModeltype
             // 
             this.tbModeltype.Enabled = false;
@@ -401,7 +413,6 @@
             // 
             // bnLoadModel
             // 
-            this.bnLoadModel.Enabled = false;
             this.bnLoadModel.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.bnLoadModel.Location = new System.Drawing.Point(18, 24);
             this.bnLoadModel.Name = "bnLoadModel";
@@ -446,18 +457,6 @@
             this.bnStopDetection.UseVisualStyleBackColor = true;
             this.bnStopDetection.Click += new System.EventHandler(this.BnStopDetection_Click);
             // 
-            // bnThreshold
-            // 
-            this.bnThreshold.Enabled = false;
-            this.bnThreshold.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.bnThreshold.Location = new System.Drawing.Point(18, 128);
-            this.bnThreshold.Name = "bnThreshold";
-            this.bnThreshold.Size = new System.Drawing.Size(100, 25);
-            this.bnThreshold.TabIndex = 43;
-            this.bnThreshold.Text = "阈值调整";
-            this.bnThreshold.UseVisualStyleBackColor = true;
-            this.bnThreshold.Click += new System.EventHandler(this.BnThreshold_Click);
-            // 
             // DoubleCamera
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -469,7 +468,7 @@
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.pictureBox3);
             this.Name = "DoubleCamera";
-            this.Text = "DoubleCamera";
+            this.Text = "深度学习工业检测（多相机模式）";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SingleCamera_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.groupBox3.ResumeLayout(false);
