@@ -79,9 +79,9 @@ namespace PaddleXCsharp
         static extern bool PaddlexDetPredict(IntPtr model, byte[] image, int height, int width, int channels, int max_box, float[] result, bool visualize);
         #endregion
 
-        //// 定义语义分割接口
-        //[DllImport("paddlex_inference.dll", EntryPoint = "PaddlexSegPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        //static extern bool PaddlexSegPredict(IntPtr model, byte[] image, int height, int width, int channels, );
+        // 定义语义分割接口
+        [DllImport("paddlex_inference.dll", EntryPoint = "PaddlexSegPredict", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        static extern bool PaddlexSegPredict(IntPtr model, byte[] image, int height, int width, int channels, long[] label_map, float[] score_map, bool visualize);
 
         public SingleCamera()
         {
@@ -631,10 +631,64 @@ namespace PaddleXCsharp
                     }
                 }
             }
+            else if (modelType == 2)
+            {
+                long[] label_map = new long[bmp.Height * bmp.Width];
+                float[] score_map = new float[bmp.Height * bmp.Width];
+                bool res = PaddlexSegPredict(model, source, bmp.Height, bmp.Width, channel, label_map, score_map, true);
+                if (res)
+                {
+                    byte[] label = new byte[bmp.Height * bmp.Width];   // 用于创建Mat
+                    for (int i = 0; i < label_map.Length; i++)
+                    {
+                        label[i] = (byte)label_map[i];
+                    }
+                    Mat mask = new Mat(bmp.Height, bmp.Width, MatType.CV_8UC1, label);
+
+                    int num_class = 3;
+                    int[] colormap = GetColorMap(num_class);
+
+                    for(int i = 0; i < img.Rows; i++)
+                    {
+                        for(int j = 0; j < img.Cols; j++)
+                        {
+                            int category_id = Math.Abs(mask.Get<byte>(i, j));
+                            if(category_id > 0)
+                            {
+                                Vec3b color = new Vec3b();
+                                color.Item0 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item0 / 2 - colormap[3 * category_id + 0]);
+                                color.Item1 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 1]);
+                                color.Item2 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 2]);
+
+                                img.Set(i, j, color);
+                            }
+                        }
+                    }
+                }
+            }
 
             resultShow = new Bitmap(img.Cols, img.Rows, (int)img.Step(), PixelFormat.Format24bppRgb, img.Data);
             System.GC.Collect();
             return resultShow;
+        }
+
+        public static int[] GetColorMap(int num)
+        {
+            int[] colormap = new int[3 * num];
+            for(int i = 0; i < num; ++i)
+            {
+                int j = 0;
+                int lab = i;
+                while (lab > 0)
+                {
+                    colormap[i * 3] |= (((lab >> 0) & 1) << (7 - j));
+                    colormap[i * 3 + 1] |= (((lab >> 1) & 1) << (7 - j));
+                    colormap[i * 3 + 1] |= (((lab >> 2) & 1) << (7 - j));
+                    ++j;
+                    lab >>= 3;
+                }
+            }
+            return colormap;
         }
 
         private void BnStartDetection_Click(object sender, EventArgs e)
