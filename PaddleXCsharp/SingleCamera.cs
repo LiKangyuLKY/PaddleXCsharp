@@ -656,9 +656,9 @@ namespace PaddleXCsharp
                             if(category_id > 0)
                             {
                                 Vec3b color = new Vec3b();
-                                color.Item0 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item0 / 2 - colormap[3 * category_id + 0]);
-                                color.Item1 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 1]);
-                                color.Item2 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 2]);
+                                color.Item0 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item0 / 2 - colormap[3 * category_id + 0] / 2);
+                                color.Item1 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 1] / 2);
+                                color.Item2 = (byte)Math.Abs(img.Get<Vec3b>(i, j).Item1 / 2 - colormap[3 * category_id + 2] / 2);
 
                                 img.Set(i, j, color);
                             }
