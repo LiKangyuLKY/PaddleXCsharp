@@ -44,9 +44,9 @@ namespace PaddleXCsharp
         #region 接口定义及参数
         int modelType = 1;  // 模型的类型  0：分类模型；1：检测模型；2：分割模型
         string modelPath = ""; // 模型目录路径
-        bool useGPU = false;  // 是否使用GPU
+        bool useGPU = true;  // 是否使用GPU
         bool useTrt = false;  // 是否使用TensorRT
-        bool useMkl = true;  // 是否使用MKLDNN加速模型在CPU上的预测性能
+        bool useMkl = false;  // 是否使用MKLDNN加速模型在CPU上的预测性能
         int mklThreadNum = 8; // 使用MKLDNN时，线程数量
         int gpuID = 0; // 使用GPU的ID号
         string key = ""; //模型解密密钥，此参数用于加载加密的PaddleX模型时使用
@@ -56,7 +56,8 @@ namespace PaddleXCsharp
         IntPtr model; // 模型
 
         // 目标物种类，需根据实际情况修改！
-        string[] category = { "bocai", "changqiezi", "hongxiancai", "huluobo", "xihongshi", "xilanhua"};
+        //string[] category = { "bocai", "changqiezi", "hongxiancai", "huluobo", "xihongshi", "xilanhua"};
+        string[] category = { "meter" };
 
         // 定义CreatePaddlexModel接口
         [DllImport("paddlex_inference.dll", EntryPoint = "CreatePaddlexModel", CharSet = CharSet.Ansi)]
@@ -596,7 +597,7 @@ namespace PaddleXCsharp
         private Bitmap Inference(Bitmap bmp)
         {
             Bitmap bmpNew = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
-            Bitmap resultShow;
+            Bitmap resultShow = null;
             Mat img = BitmapConverter.ToMat(bmpNew);
 
             int channel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
