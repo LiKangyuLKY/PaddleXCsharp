@@ -40,9 +40,11 @@
 
 ## 工作环境
 
-> `CUDA 10.0`
-> `cudnn 7.5.0`
-> Visual Studio 2019
+* `CUDA 10.0`
+* `cudnn 7.5.0`
+* `Visual Studio 2019`
+* `OpenCvSharp3-AnyCPU`
+* `.NET Framework 4.7.2`
 
 **经过测试，CUDA和CUDNN为其他版本时，可能会有问题，报错为：外部组件出现异常**
 
